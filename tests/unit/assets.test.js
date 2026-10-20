@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { makeGlb } from '../fixtures/glb.js';
 import { inspectGlb } from '../../src/assets/glbValidation.js';
 import { loadCharacter } from '../../src/assets/assetLoader.js';
-import { mapAnimations } from '../../src/assets/characterAnimation.js';
+import { mapAnimations, createCharacterAnimation } from '../../src/assets/characterAnimation.js';
 import { createAudio } from '../../src/audio/audio.js';
 
 test('GLB validation rejects malformed headers, truncation, external dependencies and unsupported compression', () => {
@@ -34,6 +34,23 @@ test('missing animation clips are reported instead of inventing animations', asy
   assert.equal(asset.profile.missing.length, 5); assert.doesNotThrow(() => asset.animation.update('death', 0.1)); asset.dispose();
   const run = { name: 'Running' }, idle = { name: 'Idle' };
   assert.equal(mapAnimations([run, idle]).run, run);
+});
+
+test('PHANTOM selects exact authored clips over alternate reactions and freezes one-shot dash at 0.2 seconds', () => {
+  const root = new THREE.Group();
+  const names = ['HitHead', 'Walk', 'Backflip', 'Sentinel', 'Run', 'DodgeRoll', 'HitChest', 'Collapse'];
+  const clips = names.map(name => new THREE.AnimationClip(name, name === 'DodgeRoll' ? 2.8666666667 : 3, []));
+  const animation = createCharacterAnimation(root, clips, { phantom: true });
+  assert.deepEqual(animation.describe().mapping, { idle:'Sentinel',run:'Run',dash:'DodgeRoll',hit:'HitChest',death:'Collapse' });
+  animation.update('dash', 0.1);
+  const halfway = animation.describe().time;
+  animation.update('dash', 0); assert.equal(animation.describe().time, halfway);
+  animation.update('dash', 0.1); assert.ok(Math.abs(animation.describe().time - clips[5].duration) < 1e-6);
+  animation.update('dash', 0.3); assert.ok(Math.abs(animation.describe().time - clips[5].duration) < 1e-6);
+  animation.update('death', 4); assert.equal(animation.describe().time, 3);
+  animation.update('death', 1); assert.equal(animation.describe().time, 3);
+  animation.reset(); animation.update('idle', 0); assert.equal(animation.describe().clip, 'Sentinel');
+  animation.dispose();
 });
 
 test('audio remains gesture-gated, pauses silence voices and mute prevents playback', () => {

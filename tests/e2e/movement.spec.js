@@ -4,7 +4,10 @@ const snapshot = page => page.evaluate(() => window.__ND.snapshot());
 test('production subpath: movement, dash, pause, blur, reset; no external requests', async ({ page }) => {
   const errors = [], external = [];
   page.on('pageerror', error => errors.push(error.message));
-  page.on('request', request => { if (!request.url().startsWith('http://127.0.0.1:4174/')) external.push(request.url()); });
+  page.on('request', request => {
+    // Embedded GLB textures use local blob URLs; these are not network dependencies.
+    if (!request.url().startsWith('http://127.0.0.1:4174/') && !request.url().startsWith('blob:http://127.0.0.1:4174/')) external.push(request.url());
+  });
   await page.goto('./?diagnostics=1');
   await expect(page.getByRole('button', { name: /开始测试/ })).toBeVisible();
   // Let initial shader compilation settle before measuring the simulation.

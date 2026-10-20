@@ -68,7 +68,11 @@ export function createUI({ resume, pause, reset, selectMode = () => {}, getBest 
       get('score-value').textContent = score.value.toLocaleString();
       get('combo-value').textContent = `${score.combo} 连击 / ×${multiplier(score.combo).toFixed(1)}`;
       get('combo-fill').style.transform = `scaleX(${score.combo ? Math.max(0, (score.expiresAt - session.world.tick) / 180) : 0})`;
-      get('time-value').textContent = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, '0')}`;
+      const seconds = String(elapsed % 60).padStart(2, '0');
+      get('time-value').textContent = elapsed < 3600 ? `${String(Math.floor(elapsed / 60)).padStart(2, '0')}:${seconds}` :
+        `${Math.floor(elapsed / 3600)}:${String(Math.floor(elapsed / 60) % 60).padStart(2, '0')}:${seconds}`;
+      get('time-value').parentElement.dataset.state = session.mode;
+      get('timer-status').textContent = running ? '对局进行中' : finished ? '最终生存时间' : session.mode === 'ready' ? '准备就绪' : '已暂停';
       get('stage-text').textContent = `阶段 ${session.world.stage + 1} / ${STAGES.length} · ${STAGES[session.world.stage].name}`;
       get('pressure-text').textContent = `${MODE_NAMES[gameMode]} · ${gameMode === 'standard' ? '固定规则' : PRESSURE_NAMES[session.world.adaptive.mode]}` + (session.world.pattern >= 0 ? ` · ${PATTERNS[session.world.pattern].name}` : '');
       get('health').textContent = '◆'.repeat(p.hp) + '◇'.repeat(3 - p.hp);

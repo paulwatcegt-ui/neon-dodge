@@ -10,11 +10,12 @@ export function createCamera(arena = createArena(GAME.apothem)) {
   camera.position.copy(direction).multiplyScalar(-50); camera.lookAt(0, 0, 0); camera.updateMatrixWorld(true);
   const points = arena.vertices.flatMap(p => [-0.7, 0.4].map(y => new THREE.Vector3(p.x, y, p.z)));
   const viewBounds = new THREE.Box3().setFromPoints(points.map(p => p.clone().applyMatrix4(camera.matrixWorldInverse)));
-  function resize(width, height) {
+  function resize(width, height, safe = { x: 0, y: 0, width, height }) {
     const aspect = width / height;
-    const halfHeight = Math.max((viewBounds.max.y - viewBounds.min.y) / 2,
-      (viewBounds.max.x - viewBounds.min.x) / (2 * aspect)) / 0.84;
-    const cx = (viewBounds.min.x + viewBounds.max.x) / 2, cy = (viewBounds.min.y + viewBounds.max.y) / 2;
+    const halfHeight = Math.max((viewBounds.max.y - viewBounds.min.y) / 2 * height / safe.height,
+      (viewBounds.max.x - viewBounds.min.x) / (2 * aspect) * width / safe.width) / 0.94;
+    const cx = (viewBounds.min.x + viewBounds.max.x) / 2 - ((safe.x + safe.width / 2) / width * 2 - 1) * halfHeight * aspect;
+    const cy = (viewBounds.min.y + viewBounds.max.y) / 2 - (1 - (safe.y + safe.height / 2) / height * 2) * halfHeight;
     camera.left = cx - halfHeight * aspect; camera.right = cx + halfHeight * aspect;
     camera.top = cy + halfHeight; camera.bottom = cy - halfHeight;
     camera.updateProjectionMatrix();

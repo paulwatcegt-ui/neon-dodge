@@ -2,7 +2,24 @@ import { MAX_GLB_BYTES } from '../assets/glbValidation.js';
 export function createSettings({ pause, view, audio }) {
   const get = id => document.getElementById(id), panel = get('settings');
   const file = get('model-file'), status = get('model-status'), sound = get('sound-toggle');
-  let generation = 0, disposed = false, soundEnabled = true;
+  let generation = 0, disposed = false, soundEnabled = true, pending = null;
+  async function loadDefault() {
+    const token = ++generation;
+    pending?.abort(); const controller = new AbortController(); pending = controller;
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    status.textContent = '正在加载 ND-01 / PHANTOM…';
+    try {
+      const response = await fetch(`${import.meta.env.BASE_URL}models/aether-02.glb`, { signal: controller.signal });
+      if (!response.ok) throw Error(`模型请求失败 (${response.status})`);
+      const { loadCharacter } = await import('../assets/assetLoader.js');
+      const asset = await loadCharacter(await response.arrayBuffer(), { phantom: true });
+      if (disposed || token !== generation) { asset.dispose(); return; }
+      view.setAsset(asset); get('model-rotation').value = '0'; file.value = '';
+      status.textContent = `ND-01 / PHANTOM · AETHER / 02 · ${asset.profile.triangles.toLocaleString()} 三角面 · CC0。五种游戏动作已映射。`;
+    } catch (error) {
+      if (!disposed && token === generation) { view.setAsset(null); status.textContent = `ND-01 加载失败：${error.message} 已启用备用角色 T-00，可重试或导入 GLB。`; }
+    } finally { clearTimeout(timeout); }
+  }
   const listeners = [];
   function on(element, type, fn) { element.addEventListener(type, fn); listeners.push(() => element.removeEventListener(type, fn)); }
   on(panel, 'toggle', () => { if (panel.open) pause('manual'); });
@@ -15,11 +32,12 @@ export function createSettings({ pause, view, audio }) {
     sound.textContent = soundEnabled ? '音效：开' : '音效：关'; sound.setAttribute('aria-pressed', String(soundEnabled)); });
   on(get('model-rotation'), 'change', e => view.rotateAsset(Number(e.target.value) * Math.PI / 180));
   on(get('model-reset'), 'click', () => {
-    generation++; view.setAsset(null); file.value = ''; get('model-rotation').value = '0'; status.textContent = '临时机械体 T-00 · 尚未导入 ND-01';
+    pause('manual'); loadDefault().then(() => { if (!disposed) return view.prepare(); })
+      .catch(() => { if (!disposed) status.textContent += ' 场景预热失败，可调整画质后重试。'; });
   });
   on(file, 'change', async () => {
     const selected = file.files[0]; if (!selected) return;
-    pause('manual'); const token = ++generation;
+    pause('manual'); const token = ++generation; pending?.abort();
     status.textContent = '正在检查并加载模型…';
     try {
       if (!/\.glb$/i.test(selected.name)) throw Error('请选择 .glb 单文件模型。');
@@ -36,5 +54,5 @@ export function createSettings({ pause, view, audio }) {
         (p.triangles > 100000 || p.materials > 16 ? ' 建议进一步优化模型预算。' : '') + ' 模型朝向不正确时可调整下方选项。';
     } catch (error) { if (!disposed && token === generation) status.textContent = `导入失败：${error.message} 当前角色保持不变。`; }
   });
-  return { dispose() { disposed = true; generation++; listeners.forEach(remove => remove()); } };
+  return { loadDefault, dispose() { disposed = true; generation++; pending?.abort(); listeners.forEach(remove => remove()); } };
 }

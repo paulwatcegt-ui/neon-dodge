@@ -6,7 +6,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 export function createPost(renderer, scene, camera) {
   const composer = new EffectComposer(renderer);
   const render = new RenderPass(scene, camera);
-  const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.3, 0.4, 1.8);
+  const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.18, 0.3, 2.2);
   const output = new OutputPass();
   composer.addPass(render); composer.addPass(bloom); composer.addPass(output);
   return { render: () => composer.render(),

@@ -36,7 +36,7 @@ try {
   settings = createSettings({ pause, view, audio });
   fullscreen = createFullscreen(document.getElementById('fullscreen'), pause);
   ui.setLoading(true);
-  view.prepare(session.world).then(() => { if (!disposed) { prepared = true; ui.setLoading(false); } }).catch(error => { if (!disposed) { console.error(error); ui.error('场景初始化失败，请刷新或尝试支持 WebGL 2 的浏览器。'); } });
+  settings.loadDefault().then(() => { if (!disposed) return view.prepare(session.world); }).then(() => { if (!disposed) { prepared = true; ui.setLoading(false); } }).catch(error => { if (!disposed) { console.error(error); ui.error('场景初始化失败，请刷新或尝试支持 WebGL 2 的浏览器。'); } });
   keyboard = createKeyboard({ basis: view.basis, isRunning: () => session.mode === 'running',
     togglePause: () => { if (session.mode === 'running') pause('manual'); else resume(); },
     onBlur: () => pause('focus') });

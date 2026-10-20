@@ -52,9 +52,9 @@ export function createArenaView(arena) {
   const ring = new THREE.Mesh(new THREE.RingGeometry(1.5, 1.52, 64),
     new THREE.MeshBasicMaterial({ color: 0x35646b, side: THREE.DoubleSide }));
   ring.rotation.x = -Math.PI / 2; ring.position.y = 0.025; group.add(ring);
-  const railMaterial = new THREE.MeshStandardMaterial({ color: 0x55ffd6, emissive: 0x32ffb7, emissiveIntensity: 2.2 });
+  const railMaterial = new THREE.MeshStandardMaterial({ color: 0x55c7ac, emissive: 0x32b78d, emissiveIntensity: 0.7 });
   const trimMaterial = new THREE.MeshStandardMaterial({ color: 0x162c3d, metalness: 0.7, roughness: 0.3 });
-  const accentMaterial = new THREE.MeshStandardMaterial({ color: 0xee7dc4, emissive: 0xda328c, emissiveIntensity: 1.8 });
+  const accentMaterial = new THREE.MeshStandardMaterial({ color: 0xc47ca8, emissive: 0xa63270, emissiveIntensity: 0.6 });
   const edgeLength = Math.hypot(arena.vertices[1].x - arena.vertices[0].x, arena.vertices[1].z - arena.vertices[0].z);
   const railGeometry = new THREE.BoxGeometry(edgeLength - 0.25, 0.04, 0.05);
   const rails = [accentMaterial, railMaterial].map((material, i) => {

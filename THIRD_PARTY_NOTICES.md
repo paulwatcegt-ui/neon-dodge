@@ -16,6 +16,16 @@
 - Repository: https://github.com/mrdoob/three.js
 - License: MIT; full package license copied to public/licenses/three-MIT.txt
 - Copyright © 2010-2026 three.js authors
-- Official addons used from the same package: GLTFLoader, RoomEnvironment, EffectComposer, RenderPass, UnrealBloomPass, OutputPass and their internal dependencies.
+- Official addons used from the same package: GLTFLoader, ConvexHull, RoomEnvironment, EffectComposer, RenderPass, UnrealBloomPass, OutputPass and their internal dependencies.
 
-The public/licenses directory is copied into the static build. Build/test tools remain development dependencies; their original licenses are retained in their packages. No external models, textures, fonts, sound packs or original game promotional images are included. Project visuals are basic geometry and local system fonts.
+## AETHER / 02 — ND-01 / PHANTOM
+
+- Creator and repository: Ramon Linares, https://github.com/RamonLinares/atlas-09
+- Revision: 1b8fb9d54160215c071c5a29a49b1c36dc01f0df
+- Unmodified model: public/models/aether-02.glb, including embedded textures, rig and baked animations.
+- License: CC0 1.0 Universal; full text in public/licenses/aether-02-CC0-1.0.txt.
+- Retargeted source animations: Quaternius / Gonzalo Furnier, Universal Animation Libraries 1 and 2, CC0.
+- Source statement, provenance and file checksums: public/models/README.md.
+- The game uses its own ND-01 / PHANTOM identity. No endorsement is implied. No upstream viewer, tracking software or fonts are included.
+
+The public/licenses directory is copied into the static build. Build/test tools remain development dependencies; their original licenses are retained in their packages. Other scene visuals use project geometry and local system fonts. Audio is synthesized locally; no sound packs are included.

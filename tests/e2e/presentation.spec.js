@@ -19,7 +19,7 @@ test('local GLB import, invalid-model fallback, orientation, quality and reduced
   await expect(page.locator('#sound-toggle')).toHaveAttribute('aria-pressed', 'false');
   await page.locator('#model-file').setInputFiles({ name: 'broken.glb', mimeType: 'model/gltf-binary', buffer: Buffer.from('broken') });
   await expect(page.locator('#model-status')).toContainText('当前角色保持不变');
-  await page.locator('#model-reset').click(); await expect(page.locator('#model-status')).toContainText('临时机械体');
+  await page.locator('#model-reset').click(); await expect(page.locator('#model-status')).toContainText('ND-01 / PHANTOM · AETHER / 02');
   await page.locator('#settings summary').focus(); await page.keyboard.press('Space');
   expect(await page.locator('#settings').evaluate(element => element.open)).toBe(false);
   await page.getByRole('button', { name: /开始测试/ }).click();

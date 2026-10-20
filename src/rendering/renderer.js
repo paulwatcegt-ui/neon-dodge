@@ -42,9 +42,9 @@ export function createView(canvas, arena) {
   let quality = 'balanced', reducedMotion = false, lastFrame = performance.now(), lastWorld, playfield;
   function resize() {
     playfield = playfieldRect(innerWidth, innerHeight);
-    Object.assign(canvas.style, { position: 'absolute', left: `${playfield.x}px`, top: `${playfield.y}px`, width: `${playfield.width}px`, height: `${playfield.height}px` });
-    renderer.setSize(playfield.width, playfield.height, false); cameraRig.resize(playfield.width, playfield.height);
-    post.resize(playfield.width, playfield.height, renderer.getPixelRatio());
+    Object.assign(canvas.style, { position: 'absolute', left: '0px', top: '0px', width: `${innerWidth}px`, height: `${innerHeight}px` });
+    renderer.setSize(innerWidth, innerHeight, false); cameraRig.resize(innerWidth, innerHeight, playfield);
+    post.resize(innerWidth, innerHeight, renderer.getPixelRatio());
     basePosition.copy(cameraRig.camera.position);
     // Narrow windows move the camera farther away; keep the arena out of fog.
     const distance = cameraRig.camera.position.length();
@@ -54,7 +54,7 @@ export function createView(canvas, arena) {
   return {
     basis: cameraRig.basis,
     metrics: () => ({ quality, playfield: { ...playfield }, framing: cameraRig.framing(), calls: renderer.info.render.calls, triangles: renderer.info.render.triangles,
-      geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures }),
+      geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures, character: player.describe() }),
     async prepare(world = lastWorld) {
       lastWorld = world;
       player.update(world.player, 1, world.tick); combat.update(world, 1); effects.update(world, reducedMotion);

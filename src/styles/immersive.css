@@ -23,3 +23,40 @@
 #app .energy-panel #pulse-hint{display:block;font:9px/1.2 Consolas,'Microsoft YaHei',monospace;margin-top:4px;letter-spacing:0;color:#799b9c}
 #app .energy-panel.is-ready #pulse-hint{color:#b1ffe8}#app .energy-panel.is-ready .charge-track{box-shadow:0 0 10px #70ffd450}
 #app{min-height:0}#app .telemetry output{white-space:pre-wrap;overflow-wrap:anywhere;max-width:100%}
+
+/* Full-window scene; persistent controls stay outside the projected arena. */
+#app .topbar{background:linear-gradient(#071116d9,#07111655);border-bottom-color:#5a9b8d20}
+#app .scene-vignette{box-shadow:inset 0 0 100px #02080d45;background:none}
+#app .scene-note{top:62px!important;left:18px!important;width:230px;display:block}
+#app .health-row{display:flex;align-items:center;gap:12px;margin:0 0 4px;font-size:10px}
+#app .health-row strong{display:inline;margin:0;font-size:18px;letter-spacing:4px}
+#app .scene-note>small{font-size:9px}
+#app .run-hud{top:62px;right:18px;left:auto;width:260px;height:40px;display:grid;grid-template-columns:70px 1fr;gap:16px;padding:0;background:none;border:0;box-shadow:none}
+#app .run-hud strong{font-size:18px;line-height:1.2}
+#app .run-hud small{font-size:8px;margin-bottom:3px;display:block}
+#app .combo-info{overflow:hidden}
+#app .combo-info small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#app .combo-info strong{font-size:10px;margin:3px 0;display:block}
+#app .enemy-legend,#app .arena-label{display:none}
+#app #settings .enemy-legend{position:static;display:flex;width:auto;max-width:none;margin-top:18px;padding-top:14px;border-top:1px solid #294a48;gap:8px 14px;font-size:10px}
+#app .telemetry{bottom:77px;right:18px!important;max-width:190px;background:#071116e8;z-index:4}
+#app .combat-feedback{top:44px!important;font-size:11px}
+#app .bottom-panel{background:#0a171dbb;border-color:#3b686455;box-shadow:none}
+.survival-clock{position:absolute;top:58px;left:50%;transform:translateX(-50%);width:210px;height:46px;display:grid;grid-template-columns:1fr auto;align-content:center;column-gap:15px;padding:7px 16px;border:1px solid #609d8b55;border-top-color:#83c9b1a0;background:linear-gradient(110deg,#0c2227ee,#0a191dd9);clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);pointer-events:none;font-family:Consolas,'Microsoft YaHei',monospace;color:#c5e3da}
+.clock-caption{font-size:9px;letter-spacing:1px;white-space:nowrap}
+.clock-caption i{display:inline-block;width:4px;height:4px;background:#7ccdb5;margin:0 6px 1px 0}
+.clock-caption small{display:block;margin:3px 0 0 10px;font-size:7px;letter-spacing:2px;color:#709c99}
+.survival-clock>strong{grid-column:2;grid-row:1 / 3;align-self:center;font-size:27px;font-weight:500;line-height:1;letter-spacing:1px;font-variant-numeric:tabular-nums}
+.clock-status{font-size:7px;color:#709c99;margin:2px 0 0 10px;letter-spacing:1px}
+.survival-clock[data-state='paused']{border-top-color:#c1a56a}.survival-clock[data-state='paused'] .clock-caption i{background:#c1a56a}
+.survival-clock[data-state='defeated'] .clock-caption i{background:#cd7e83}
+@media(min-width:760px) and (max-width:1099px){#app .scene-note{width:185px}#app .run-hud{width:205px;grid-template-columns:56px 1fr;gap:10px}.survival-clock{width:190px}}
+@media(max-width:759px){
+  .survival-clock{top:57px;width:196px;height:45px}
+  #app .scene-note{top:114px!important;left:12px!important;width:145px}
+  #app .health-row{gap:8px;font-size:9px;margin:0 0 2px}#app .health-row strong{font-size:13px;margin:0;letter-spacing:2px}
+  #app .scene-note>small{font-size:8px;white-space:nowrap}
+  #app .run-hud{top:114px;right:12px;left:auto;width:160px;height:35px;grid-template-columns:48px 1fr;gap:8px;padding:0}
+  #app .run-hud strong{font-size:14px}#app .combo-info strong{font-size:8px}#app .run-hud small{font-size:7px}
+  #app .telemetry{bottom:129px}#app .combat-feedback{top:45px!important;font-size:9px}
+}

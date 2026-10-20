@@ -3,9 +3,9 @@ import * as THREE from 'three';
 /** Original procedural stand-in; not the final ND-01 asset. */
 export function createMech() {
   const group = new THREE.Group();
-  const armor = new THREE.MeshStandardMaterial({ color: 0xa7c5c7, metalness: 0.7, roughness: 0.32 });
+  const armor = new THREE.MeshStandardMaterial({ color: 0xa7c5c7, metalness: 0.55, roughness: 0.48 });
   const dark = new THREE.MeshStandardMaterial({ color: 0x172b37, metalness: 0.65, roughness: 0.4 });
-  const glow = new THREE.MeshStandardMaterial({ color: 0x7bfddd, emissive: 0x37fbc6, emissiveIntensity: 2.5 });
+  const glow = new THREE.MeshStandardMaterial({ color: 0x66cdb6, emissive: 0x37b99b, emissiveIntensity: 0.65 });
   function box(parent, dimensions, position, material = armor) {
     const mesh = new THREE.Mesh(new THREE.BoxGeometry(...dimensions), material);
     mesh.position.set(...position); mesh.castShadow = true; parent.add(mesh); return mesh;
@@ -34,7 +34,7 @@ export function createMech() {
       for (const { arm, leg, sign } of limbs) { leg.rotation.x = Math.sin(phase) * amplitude * sign; arm.rotation.x = -leg.rotation.x * 0.65; }
       group.rotation.x = player.dashRemaining > 0 ? 0.22 : 0;
       group.rotation.z = player.hp <= 0 ? 0.9 : 0;
-      glow.emissiveIntensity = player.protection > 0 ? 0.6 : player.dashRemaining > 0 ? 4 : 2.5;
+      glow.emissiveIntensity = player.protection > 0 ? 0.35 : player.dashRemaining > 0 ? 0.95 : 0.65;
     },
   };
 }

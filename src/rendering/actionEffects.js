@@ -8,8 +8,8 @@ export function createActionEffects(scene) {
   const material = new THREE.PointsMaterial({ size: 0.09, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
   const points = new THREE.Points(geometry, material); points.frustumCulled = false; scene.add(points);
   const particles = Array.from({ length: 128 }, () => ({ born: -1000, life: 1 })); let cursor = 0;
-  const trailMaterial = new THREE.MeshBasicMaterial({ color: 0x52ffd1, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending });
-  const trailGeometry = new THREE.PlaneGeometry(0.5, 1.3);
+  const trailMaterial = new THREE.MeshBasicMaterial({ color: 0x4ab69f, transparent: true, opacity: 0, depthWrite: false });
+  const trailGeometry = new THREE.PlaneGeometry(0.32, 0.9);
   const trails = Array.from({ length: 16 }, () => {
     const mesh = new THREE.Mesh(trailGeometry, trailMaterial.clone()); mesh.rotation.x = -Math.PI / 2; mesh.visible = false; scene.add(mesh);
     return { mesh, born: -1000 };
@@ -26,7 +26,7 @@ export function createActionEffects(scene) {
           const angle = hash01(e.id, i) * Math.PI * 2, speed = 0.7 + hash01(e.id, i, 1) * 2.5;
           Object.assign(p, { born: e.tick, life: e.type === 'pulse' ? 36 : 24, x: e.x, z: e.z,
             vx: Math.cos(angle) * speed, vz: Math.sin(angle) * speed, vy: 1 + hash01(e.id, i, 2) * 2,
-            color: e.type === 'damaged' ? [2.5, 0.2, 0.4] : [0.4, 2.2, 1.6] });
+            color: e.type === 'damaged' ? [0.95, 0.15, 0.25] : [0.2, 0.8, 0.6] });
         }
       }
     },
@@ -44,7 +44,7 @@ export function createActionEffects(scene) {
         colors.set(alive ? p.color.map(c => c * (1 - age / p.life)) : [0, 0, 0], i * 3);
       }
       geometry.attributes.position.needsUpdate = true; geometry.attributes.color.needsUpdate = true;
-      for (const t of trails) { const age = tick - t.born; t.mesh.visible = !reduced && age >= 0 && age < 18; t.mesh.material.opacity = Math.max(0, 0.2 * (1 - age / 18)); }
+      for (const t of trails) { const age = tick - t.born; t.mesh.visible = !reduced && age >= 0 && age < 12; t.mesh.material.opacity = Math.max(0, 0.12 * (1 - age / 12)); }
       return reduced ? 0 : strength * Math.max(0, 1 - (tick - lastImpact) / 12);
     },
     reset() { particles.forEach(p => { p.born = -1000; }); trails.forEach(t => { t.born = -1000; t.mesh.visible = false; }); lastTrailTick = -1; lastImpact = -1000; },

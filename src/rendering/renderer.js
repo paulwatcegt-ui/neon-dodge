@@ -85,7 +85,7 @@ export function createView(canvas, arena) {
       effects.dispose(); player.dispose(); scene.remove(player.group); post.dispose(); environment.dispose();
       window.removeEventListener('resize', resize);
       const geometries = new Set(), materials = new Set();
-      scene.traverse(o => { if (o.geometry) geometries.add(o.geometry); if (o.material) materials.add(o.material); });
+      scene.traverse(o => { if (o.isInstancedMesh) o.dispose(); if (o.geometry) geometries.add(o.geometry); if (o.material) materials.add(o.material); });
       geometries.forEach(g => g.dispose()); materials.forEach(m => m.dispose()); renderer.dispose();
     },
   };

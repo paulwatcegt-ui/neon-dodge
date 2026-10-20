@@ -36,6 +36,12 @@ test('narrow viewport keeps controls accessible and resizes without exceptions',
   await expect(page.getByRole('button', { name: /暂停/ })).toBeInViewport();
   await expect(page.getByRole('button', { name: /复位/ })).toBeInViewport();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  for (const selector of ['.energy-panel', '.dash-panel']) {
+    const panel = await page.locator(selector).boundingBox();
+    const value = await page.locator(`${selector} strong`).boundingBox();
+    expect(value.x).toBeGreaterThanOrEqual(panel.x);
+    expect(value.x + value.width).toBeLessThanOrEqual(panel.x + panel.width + 1);
+  }
   await page.screenshot({ path: 'test-results/phase1-narrow.png' });
 });
 

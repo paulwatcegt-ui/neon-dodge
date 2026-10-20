@@ -1,6 +1,7 @@
 import { GAME } from '../config/gameplay.js';
 import { RUN_TICKS, STAGES } from '../config/difficulty.js';
 import { multiplier } from '../simulation/scoring.js';
+import { PRESSURE_NAMES } from '../simulation/adaptiveDifficulty.js';
 
 export function createUI({ resume, pause, reset, getBest = () => ({ score: 0 }), getGraphics = () => null }) {
   const get = id => document.getElementById(id);
@@ -53,6 +54,7 @@ export function createUI({ resume, pause, reset, getBest = () => ({ score: 0 }),
       get('combo-fill').style.transform = `scaleX(${score.combo ? Math.max(0, (score.expiresAt - session.world.tick) / 180) : 0})`;
       get('time-value').textContent = `${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, '0')}`;
       get('stage-text').textContent = `阶段 ${session.world.stage + 1} / 5 · ${STAGES[session.world.stage].name}`;
+      get('pressure-text').textContent = `战场压力 · ${PRESSURE_NAMES[session.world.adaptive.mode]}`;
       get('health').textContent = '◆'.repeat(p.hp) + '◇'.repeat(3 - p.hp);
       get('energy-value').textContent = `${p.energy} / 100`;
       get('energy-fill').style.transform = `scaleX(${p.energy / 100})`;

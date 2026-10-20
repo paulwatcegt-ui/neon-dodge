@@ -53,7 +53,7 @@ try {
       snapshot: () => structuredClone({ mode: session.mode, reason: session.reason,
         tick: session.world.tick, player: session.world.player, enemies: session.world.enemies,
         projectiles: session.world.projectiles, stats: session.world.stats, pulseQueuedAt: session.world.pulseQueuedAt,
-        stage: session.world.stage, outcome: session.world.outcome, score: session.world.score }),
+        stage: session.world.stage, adaptive: session.world.adaptive, outcome: session.world.outcome, score: session.world.score }),
     }) });
   }
 } catch (error) {

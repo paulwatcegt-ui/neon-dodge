@@ -10,10 +10,11 @@ import { updateDirector } from './director.js';
 import { updateScore } from './scoring.js';
 import { RUN_TICKS } from '../config/difficulty.js';
 import { emit } from '../core/events.js';
+import { createAdaptiveDifficulty, updateAdaptiveDifficulty } from './adaptiveDifficulty.js';
 
 export function createWorld() {
   const world = {
-    tick: 0, stage: 0, outcome: null,
+    tick: 0, stage: 0, outcome: null, adaptive: createAdaptiveDifficulty(),
     score: { value: 0, combo: 0, bestCombo: 0, expiresAt: 0 },
     rng: makeRng(1001), nextEntityId: 1, nextEventId: 1, events: [],
     enemies: [], projectiles: [], nextSpawnAt: 180, pulseQueuedAt: null,
@@ -60,6 +61,7 @@ export function stepWorld(world, command) {
   updateThreats(world, perfectAge);
   releasePulse(world);
   world.tick++;
+  updateAdaptiveDifficulty(world);
   if (world.tick % 60 === 0) world.score.value += 10;
   if (p.hp <= 0) world.outcome = 'defeat';
   else if (world.tick >= RUN_TICKS) {

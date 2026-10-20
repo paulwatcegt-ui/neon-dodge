@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { COMBAT } from '../config/combat.js';
+import { createProjectileBatch } from './projectileBatch.js';
 
 export function createCombatView(scene) {
   const enemies = new Map(), bullets = new Map();
@@ -8,8 +9,7 @@ export function createCombatView(scene) {
   const colors = { shooter: 0xec9b75, chaser: 0xed7184, charger: 0xc69bff, zoner: 0xe5d06c };
   const bodyMaterials = Object.fromEntries(Object.entries(colors).map(([type, color]) => [type,
     new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.12, metalness: 0.4, roughness: 0.5 })]));
-  const bulletGeometry = new THREE.SphereGeometry(COMBAT.projectileRadius, 8, 6);
-  const bulletMaterial = new THREE.MeshBasicMaterial({ color: 0xffba77 });
+  const projectileBatch = createProjectileBatch(scene);
   const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff865c, transparent: true, opacity: 0.65 });
   const ringGeometry = new THREE.RingGeometry(0.94, 1, 64);
   const rings = Array.from({ length: 12 }, () => {
@@ -28,11 +28,12 @@ export function createCombatView(scene) {
   }
   return {
     revealForWarmup() {
+      const restoreProjectiles = projectileBatch.revealForWarmup();
       const states = [];
       for (const mesh of [...rings.map(r => r.mesh), ...[...enemies.values()].flatMap(o => [o.userData.line, o.userData.warning])]) {
         states.push([mesh, mesh.visible]); mesh.visible = true;
       }
-      return () => states.forEach(([mesh, visible]) => { mesh.visible = visible; });
+      return () => { restoreProjectiles(); states.forEach(([mesh, visible]) => { mesh.visible = visible; }); };
     },
     consume(events) {
       for (const event of events) {
@@ -75,13 +76,14 @@ export function createCombatView(scene) {
         positions.needsUpdate = true; line.geometry.computeBoundingSphere();
         object.children[0].scale.setScalar(e.state === 'windup' ? 1 + 0.15 * (1 - e.timer / e.windupTicks) : 1);
       }
-      sync(bullets, world.projectiles, b => {
-        if (!b.kind || b.kind === 'bullet') return new THREE.Mesh(bulletGeometry, bulletMaterial);
+      projectileBatch.update(world.projectiles, alpha);
+      const areas = world.projectiles.filter(b => b.kind && b.kind !== 'bullet');
+      sync(bullets, areas, b => {
         const mesh = new THREE.Mesh(ringGeometry, new THREE.MeshBasicMaterial({ color: b.kind === 'zone' ? 0xe5d06c : 0xc69bff,
           transparent: true, opacity: 0.8, side: THREE.DoubleSide, depthWrite: false }));
         mesh.rotation.x = -Math.PI / 2; mesh.scale.setScalar(b.radius); mesh.userData.ownMaterial = true; return mesh;
       });
-      for (const b of world.projectiles) bullets.get(b.id).position.set(
+      for (const b of areas) bullets.get(b.id).position.set(
         b.previousX + (b.x - b.previousX) * alpha, b.kind && b.kind !== 'bullet' ? 0.07 : 0.45,
         b.previousZ + (b.z - b.previousZ) * alpha);
       for (const r of rings) {
@@ -94,6 +96,7 @@ export function createCombatView(scene) {
       }
     },
     reset() {
+      projectileBatch.reset();
       for (const objects of [enemies, bullets]) {
         for (const o of objects.values()) {
           scene.remove(o); o.userData.line?.geometry.dispose(); o.userData.warning?.material.dispose();
@@ -105,7 +108,7 @@ export function createCombatView(scene) {
     },
     dispose() {
       this.reset(); Object.values(bodyGeometries).forEach(g => g.dispose()); Object.values(bodyMaterials).forEach(m => m.dispose());
-      bulletGeometry.dispose(); bulletMaterial.dispose();
+      projectileBatch.dispose();
       lineMaterial.dispose(); ringGeometry.dispose();
       rings.forEach(r => { scene.remove(r.mesh); r.mesh.material.dispose(); });
     },

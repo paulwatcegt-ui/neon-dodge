@@ -48,3 +48,19 @@ test('victory summary shows score, time, combo and persists exactly one result',
   await page.goto('http://127.0.0.1:5181/');
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('neon-dodge.records.v1')).score)).toBe(2760);
 });
+
+test('pressure HUD reflects damage relief and stays frozen during pause', async ({ page }) => {
+  const errors = []; page.on('pageerror', e => errors.push(e.message));
+  await fixture(page, `w.enemies=[]; w.nextSpawnAt=Infinity;
+    w.projectiles.push({id:900,x:0,z:0,vx:0,vz:0,radius:0.2,life:5,outcome:null});
+    s.step({x:0,z:0}); s.pause('manual');
+    for(let i=0;i<1000;i++) s.step({x:0,z:0});`);
+  await expect(page.locator('#pressure-text')).toHaveText('战场压力 · 缓冲');
+  await expect(page.locator('#health')).toHaveText('◆◆◇');
+  expect(await page.evaluate(() => window.__fixture.mode)).toBe('paused');
+  await page.setViewportSize({ width: 390, height: 844 });
+  const label = await page.locator('#pressure-text').boundingBox();
+  expect(label.x).toBeGreaterThanOrEqual(0); expect(label.x + label.width).toBeLessThanOrEqual(390);
+  await page.screenshot({ path: 'test-results/adaptive-narrow.png' });
+  expect(errors).toEqual([]);
+});

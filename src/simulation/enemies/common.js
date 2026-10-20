@@ -3,6 +3,7 @@ import { COMBAT } from '../../config/combat.js';
 import { STAGES } from '../../config/difficulty.js';
 import { normalize } from '../../shared/math.js';
 import { moveDisk } from '../arena.js';
+import { difficultyLimits } from '../adaptiveDifficulty.js';
 export function directionToPlayer(world, e) {
   const dx = world.player.x - e.x, dz = world.player.z - e.z;
   return { ...normalize(dx, dz), distance: Math.hypot(dx, dz) };
@@ -14,7 +15,7 @@ export function moveEnemy(world, e, x, z, speed) {
   return { ...result, distance };
 }
 export function prepare(world, e, ticks) {
-  if (world.enemies.filter(a => a.state === 'windup' || a.state === 'charge').length >= STAGES[world.stage].attackers) return false;
+  if (world.enemies.filter(a => a.state === 'windup' || a.state === 'charge').length >= difficultyLimits(world).attackers) return false;
   const aim = normalize(world.player.x - e.x, world.player.z - e.z);
   e.aimX = aim.x || (aim.z === 0 ? 1 : 0); e.aimZ = aim.z;
   e.targetX = world.player.x; e.targetZ = world.player.z;

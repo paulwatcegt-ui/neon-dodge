@@ -41,11 +41,13 @@ export function createArenaView(arena) {
       new THREE.LineBasicMaterial({ color: inset === 0.6 ? 0x25454f : 0x73f6ce })));
   }
   const markerMat = new THREE.MeshBasicMaterial({ color: 0xf5ae79 });
-  for (const n of arena.planes) {
-    const marker = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.045, 0.11), markerMat);
+  const markers = new THREE.InstancedMesh(new THREE.BoxGeometry(0.5, 0.045, 0.11), markerMat, 8);
+  markers.name = 'arena-markers'; group.add(markers);
+  for (const [i, n] of arena.planes.entries()) {
+    const marker = new THREE.Object3D();
     marker.position.set(n.x * 11.6, 0.04, n.z * 11.6);
     marker.rotation.y = -Math.atan2(n.z, n.x) + Math.PI / 2;
-    group.add(marker);
+    marker.updateMatrix(); markers.setMatrixAt(i, marker.matrix);
   }
   const ring = new THREE.Mesh(new THREE.RingGeometry(1.5, 1.52, 64),
     new THREE.MeshBasicMaterial({ color: 0x35646b, side: THREE.DoubleSide }));
@@ -53,17 +55,25 @@ export function createArenaView(arena) {
   const railMaterial = new THREE.MeshStandardMaterial({ color: 0x55ffd6, emissive: 0x32ffb7, emissiveIntensity: 2.2 });
   const trimMaterial = new THREE.MeshStandardMaterial({ color: 0x162c3d, metalness: 0.7, roughness: 0.3 });
   const accentMaterial = new THREE.MeshStandardMaterial({ color: 0xee7dc4, emissive: 0xda328c, emissiveIntensity: 1.8 });
+  const edgeLength = Math.hypot(arena.vertices[1].x - arena.vertices[0].x, arena.vertices[1].z - arena.vertices[0].z);
+  const railGeometry = new THREE.BoxGeometry(edgeLength - 0.25, 0.04, 0.05);
+  const rails = [accentMaterial, railMaterial].map((material, i) => {
+    const mesh = new THREE.InstancedMesh(railGeometry, material, 8);
+    mesh.name = `arena-rails-${i}`; group.add(mesh); return mesh;
+  });
+  const pillars = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.16, 0.25, 0.65, 6), trimMaterial, 8);
+  const lamps = new THREE.InstancedMesh(new THREE.BoxGeometry(0.1, 0.36, 0.1), railMaterial, 8);
+  pillars.name = 'arena-pillars'; lamps.name = 'arena-lamps'; group.add(pillars, lamps);
   for (let i = 0; i < arena.vertices.length; i++) {
     const p = arena.vertices[i], q = arena.vertices[(i + 1) % 8];
-    const length = Math.hypot(q.x - p.x, q.z - p.z);
-    for (const y of [-0.35, -0.12]) {
-      const rail = new THREE.Mesh(new THREE.BoxGeometry(length - 0.25, 0.04, 0.05), i % 2 ? railMaterial : accentMaterial);
-      rail.position.set((p.x + q.x) / 2, y, (p.z + q.z) / 2); rail.rotation.y = -Math.atan2(q.z - p.z, q.x - p.x); group.add(rail);
+    for (const [j, y] of [-0.35, -0.12].entries()) {
+      const rail = new THREE.Object3D();
+      rail.position.set((p.x + q.x) / 2, y, (p.z + q.z) / 2); rail.rotation.y = -Math.atan2(q.z - p.z, q.x - p.x);
+      rail.updateMatrix(); rails[i % 2].setMatrixAt(Math.floor(i / 2) * 2 + j, rail.matrix);
     }
-    const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.25, 0.65, 6), trimMaterial);
-    pillar.position.set(p.x * 0.98, 0.1, p.z * 0.98); group.add(pillar);
-    const lamp = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.36, 0.1), railMaterial);
-    lamp.position.copy(pillar.position); lamp.position.y = 0.2; group.add(lamp);
+    const pillar = new THREE.Object3D();
+    pillar.position.set(p.x * 0.98, 0.1, p.z * 0.98); pillar.updateMatrix(); pillars.setMatrixAt(i, pillar.matrix);
+    pillar.position.y = 0.2; pillar.updateMatrix(); lamps.setMatrixAt(i, pillar.matrix);
   }
   return group;
 }

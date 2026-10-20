@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createWorld, stepWorld } from '../../src/simulation/world.js';
-import { createSession } from '../../src/core/session.js';
+import { createWorld as makeWorld, stepWorld } from '../../src/simulation/world.js';
+import { createSession as makeSession } from '../../src/core/session.js';
+const createWorld = () => makeWorld({ mode: 'practice' });
+const createSession = () => makeSession({ mode: 'practice' });
 import { updateAdaptiveDifficulty, difficultyLimits } from '../../src/simulation/adaptiveDifficulty.js';
 import { updateDirector } from '../../src/simulation/director.js';
 import { prepare } from '../../src/simulation/enemies/common.js';
@@ -14,7 +16,7 @@ test('real damage triggers relief, postpones spawn and preserves live threats', 
   w.projectiles.push({ id: 901, x: 7, z: 7, vx: 0, vz: 0, radius: 0.2, life: 20, outcome: null });
   stepWorld(w, { x: 0, z: 0 });
   assert.equal(w.player.hp, 2); assert.equal(w.adaptive.mode, 'relief');
-  assert.equal(w.nextSpawnAt, 1 + 252);
+  assert.equal(w.nextSpawnAt, 1 + 84);
   assert.equal(w.projectiles[0].id, 901);
   assert.equal(w.events.filter(e => e.type === 'pressure').length, 1);
 });
@@ -55,12 +57,13 @@ test('all modes obey stage/type caps, relief blocks new windups without cancelli
     }
   }
   const w = createWorld(); w.enemies = [];
-  for (let i = 0; i < 4; i++) spawnEnemy(w, i + 2, 0, 'chaser');
-  for (let i = 0; i < 3; i++) assert.equal(prepare(w, w.enemies[i], 36), true);
+  for (let i = 0; i < 5; i++) spawnEnemy(w, i + 2, 0, 'chaser');
+  for (let i = 0; i < 4; i++) { w.tick = i * 12; assert.equal(prepare(w, w.enemies[i], 36), true); }
   w.adaptive.mode = 'relief';
-  assert.equal(prepare(w, w.enemies[3], 36), false);
-  assert.equal(w.enemies.filter(e => e.state === 'windup').length, 3);
-  assert.ok(w.enemies.slice(0, 3).every(e => e.timer === 36));
+  w.tick += 12;
+  assert.equal(prepare(w, w.enemies[4], 36), false);
+  assert.equal(w.enemies.filter(e => e.state === 'windup').length, 4);
+  assert.ok(w.enemies.slice(0, 4).every(e => e.timer === 36));
 });
 
 test('adaptive state is bounded, deterministic and resets with the session; pause freezes it', () => {

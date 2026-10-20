@@ -6,6 +6,7 @@ import { createArenaView } from '../../src/rendering/arenaView.js';
 import { createArena } from '../../src/simulation/arena.js';
 import { createCombatView } from '../../src/rendering/combatView.js';
 import { createWorld } from '../../src/simulation/world.js';
+import { spawnEnemy, updateEnemies } from '../../src/simulation/enemies.js';
 
 test('projectile instances interpolate in world space, skip areas and clear stale slots', () => {
   const scene = new THREE.Scene(), batch = createProjectileBatch(scene);
@@ -58,4 +59,18 @@ test('combat view retains area threats alongside batches, resets and fully detac
   view.reset(); assert.equal(scene.getObjectByName('projectile-batch').count, 0);
   assert.equal(scene.children.includes(area), false);
   view.dispose(); assert.equal(scene.children.length, 0);
+});
+
+test('diagonal charger corridor aligns with the locked line and covers its full width', () => {
+  const scene = new THREE.Scene(), view = createCombatView(scene), w = createWorld();
+  w.enemies = []; spawnEnemy(w, -5, -5, 'charger'); updateEnemies(w); view.update(w, 1);
+  scene.updateMatrixWorld(true);
+  const e = w.enemies[0], warning = scene.children.find(o => o.userData.warning)?.userData.warning;
+  assert.ok(warning.visible);
+  const start = new THREE.Vector3(0, -0.5, 0).applyMatrix4(warning.matrixWorld);
+  const end = new THREE.Vector3(0, 0.5, 0).applyMatrix4(warning.matrixWorld);
+  const axis = end.clone().sub(start).normalize();
+  assert.ok(Math.abs(axis.x * e.aimX + axis.z * e.aimZ) > 0.9999);
+  assert.ok(Math.abs(start.distanceTo(end) - Math.hypot(e.targetX - e.x, e.targetZ - e.z)) < 1e-6);
+  assert.equal(warning.scale.x, 1); view.dispose();
 });

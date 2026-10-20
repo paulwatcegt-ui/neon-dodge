@@ -9,7 +9,7 @@ export function fireProjectile(world, e) {
   if (id) emit(world, 'shot', { x, z });
 }
 export function updateShooter(world, e) {
-  if (e.state === 'windup') { if (--e.timer === 0) { fireProjectile(world, e); recover(e, COMBAT.recoverTicks); } return; }
+  if (e.state === 'windup') { if (--e.timer === 0) { fireProjectile(world, e); recover(world, e, 66); } return; }
   const d = directionToPlayer(world, e);
   if (d.distance > COMBAT.keepDistance + 0.5 || d.distance < COMBAT.keepDistance - 1) {
     const sign = d.distance < COMBAT.keepDistance - 1 ? -1 : 1;

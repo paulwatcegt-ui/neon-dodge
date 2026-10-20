@@ -1,27 +1,46 @@
 import { GAME } from '../../config/gameplay.js';
 import { COMBAT } from '../../config/combat.js';
-import { STAGES } from '../../config/difficulty.js';
+import { STAGES, PATTERNS, endlessTier } from '../../config/difficulty.js';
 import { normalize } from '../../shared/math.js';
 import { moveDisk } from '../arena.js';
 import { difficultyLimits } from '../adaptiveDifficulty.js';
+import { hasEscapePositions } from '../attackSafety.js';
 export function directionToPlayer(world, e) {
   const dx = world.player.x - e.x, dz = world.player.z - e.z;
   return { ...normalize(dx, dz), distance: Math.hypot(dx, dz) };
 }
-export function moveEnemy(world, e, x, z, speed) {
-  const result = moveDisk(world.arena, e, { x: x * speed * STAGES[world.stage].speed * GAME.step,
-    z: z * speed * STAGES[world.stage].speed * GAME.step }, COMBAT.enemyRadius);
+export function moveEnemy(world, e, x, z, speed, stageSpeed = STAGES[world.stage].speed) {
+  const result = moveDisk(world.arena, e, { x: x * speed * stageSpeed * GAME.step,
+    z: z * speed * stageSpeed * GAME.step }, COMBAT.enemyRadius);
   const distance = Math.hypot(result.x - e.x, result.z - e.z); e.x = result.x; e.z = result.z;
   return { ...result, distance };
 }
 export function prepare(world, e, ticks) {
+  if (world.tick < world.nextAttackAt) return false;
+  const active = world.enemies.filter(a => a.state === 'windup' || a.state === 'charge');
+  if (world.projectiles.length + active.length >= COMBAT.projectileCap) return false;
+  // Keep area denial and fast charges sparse, with visible gaps between attack starts.
+  if (e.type === 'zoner' && (active.some(a => a.type === 'zoner') || world.projectiles.some(b => b.kind === 'zone'))) return false;
+  if (['zoner', 'charger'].includes(e.type) && active.filter(a => ['zoner', 'charger'].includes(a.type)).length + world.projectiles.filter(b => b.kind === 'zone').length >= 2) return false;
   if (world.enemies.filter(a => a.state === 'windup' || a.state === 'charge').length >= difficultyLimits(world).attackers) return false;
   const aim = normalize(world.player.x - e.x, world.player.z - e.z);
-  e.aimX = aim.x || (aim.z === 0 ? 1 : 0); e.aimZ = aim.z;
-  e.targetX = world.player.x; e.targetZ = world.player.z;
+  const plan = { ...e, aimX: aim.x || (aim.z === 0 ? 1 : 0), aimZ: aim.z,
+    targetX: world.player.x, targetZ: world.player.z };
+  if (e.type === 'charger') {
+    plan.chargeSpeed = 14 * STAGES[world.stage].speed;
+    const end = moveDisk(world.arena, e, { x: plan.aimX * plan.chargeSpeed * 0.5, z: plan.aimZ * plan.chargeSpeed * 0.5 }, COMBAT.enemyRadius, false);
+    plan.targetX = end.x; plan.targetZ = end.z;
+  }
+  if (['zoner', 'charger'].includes(e.type) && !hasEscapePositions(world, plan, ticks)) return false;
+  Object.assign(e, plan);
+  world.nextAttackAt = world.tick + 12;
   e.state = 'windup'; e.timer = ticks; e.windupTicks = ticks; return true;
 }
-export function recover(e, ticks) { e.state = 'recover'; e.timer = ticks; }
+export function recover(world, e, ticks) {
+  const focus = world.pattern >= 0 && PATTERNS[world.pattern].focus.includes(e.type);
+  const scale = Math.max(0.55, STAGES[world.stage].recovery - endlessTier(world.tick) * 0.02);
+  e.state = 'recover'; e.timer = Math.max(30, Math.round(ticks * scale * (world.pattern < 0 ? 1 : focus ? 0.8 : 1.15)));
+}
 export function threat(world, data) {
   if (world.projectiles.length >= COMBAT.projectileCap) return;
   const id = world.nextEntityId++;

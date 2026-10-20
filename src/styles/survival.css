@@ -1,0 +1,10 @@
+.dialog{max-height:calc(100dvh - 40px);overflow-y:auto;box-sizing:border-box}
+.mode-picker{display:flex;flex-direction:column;gap:8px;margin:0 0 20px;color:#9fc2bb;font-size:11px;text-align:left}
+.mode-picker select{padding:10px;color:#c7f4e4;background:#112a2c;border:1px solid #42655f;width:100%;font:inherit}
+.mode-picker select:disabled{opacity:0.6}
+.local-board{margin-top:20px;border-top:1px solid #34534d;padding-top:14px;text-align:left;color:#a3c8be;font-size:11px}
+.local-board summary{cursor:pointer;padding:6px 0}.local-board>small{margin:10px 0;display:block;font-size:9px}
+.local-board ol{list-style:none;padding:0;max-height:180px;overflow-y:auto;line-height:1.8}
+.local-board li{padding:6px 0;border-bottom:1px solid #34534d66;font:10px/1.8 Consolas,'Microsoft YaHei',monospace}
+.dialog .local-board p{font-size:11px;margin:10px 0}.result-summary{gap:14px}
+#pressure-text{max-width:100%;overflow-wrap:anywhere}

@@ -8,16 +8,19 @@ import { updateThreats } from './combat.js';
 import { releasePulse } from './pulse.js';
 import { updateDirector } from './director.js';
 import { updateScore } from './scoring.js';
-import { RUN_TICKS } from '../config/difficulty.js';
+import { RULES_VERSION, MODE_NAMES } from '../config/difficulty.js';
 import { emit } from '../core/events.js';
 import { createAdaptiveDifficulty, updateAdaptiveDifficulty } from './adaptiveDifficulty.js';
 
-export function createWorld() {
+export function createWorld({ mode = 'standard', seed = 1001, runId = 'simulation' } = {}) {
+  if (!Object.hasOwn(MODE_NAMES, mode)) throw new Error('Unknown game mode');
+  if (!Number.isInteger(seed) || seed < 0 || seed > 0xffffffff) throw new Error('Invalid seed');
   const world = {
+    gameMode: mode, seed, runId, rulesVersion: RULES_VERSION,
     tick: 0, stage: 0, outcome: null, adaptive: createAdaptiveDifficulty(),
     score: { value: 0, combo: 0, bestCombo: 0, expiresAt: 0 },
-    rng: makeRng(1001), nextEntityId: 1, nextEventId: 1, events: [],
-    enemies: [], projectiles: [], nextSpawnAt: 180, pulseQueuedAt: null,
+    rng: makeRng(seed), nextEntityId: 1, nextEventId: 1, events: [],
+    enemies: [], projectiles: [], nextSpawnAt: 60, nextAttackAt: 0, pattern: -1, pulseQueuedAt: null,
     stats: { perfect: 0, graze: 0, pulses: 0, kills: 0 },
     arena: createArena(GAME.apothem),
     player: { x: 0, z: 0, previousX: 0, previousZ: 0, facingX: 0, facingZ: -1,
@@ -25,14 +28,15 @@ export function createWorld() {
       hp: COMBAT.hp, energy: 0, protection: 0 },
   };
   spawnEnemy(world, 0, -7);
+  spawnEnemy(world, -5, 4, 'chaser');
   return world;
 }
 
 /** Pure simulation: all durations are integer ticks, no renderer or browser dependencies. */
 export function stepWorld(world, command) {
-  world.events.length = 0;
   const p = world.player;
   if (p.hp <= 0 || world.outcome) return;
+  world.events.length = 0;
   updateScore(world);
   updateDirector(world);
   if (p.protection > 0) p.protection--;
@@ -64,8 +68,4 @@ export function stepWorld(world, command) {
   updateAdaptiveDifficulty(world);
   if (world.tick % 60 === 0) world.score.value += 10;
   if (p.hp <= 0) world.outcome = 'defeat';
-  else if (world.tick >= RUN_TICKS) {
-    world.outcome = 'victory'; world.score.value += 1000 + p.hp * 250;
-    emit(world, 'victory');
-  }
 }

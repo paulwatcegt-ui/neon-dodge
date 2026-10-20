@@ -53,11 +53,13 @@ test('diagonal speed equals axial speed, independent of input magnitude', () => 
   near(Math.hypot(diagonal.player.x, diagonal.player.z), 3);
 });
 
-test('dash covers 4.8m in exactly 12 steps, cooldown ends after 48', () => {
+test('dash covers 3.2m in exactly 12 steps, cooldown ends after 96', () => {
   const w = createWorld(); stepWorld(w, { x: 1, z: 0, dash: true });
   for (let i = 1; i < 12; i++) stepWorld(w, neutral);
-  near(w.player.x, 4.8); assert.equal(w.player.dashRemaining, 0);
-  for (let i = 12; i < 48; i++) stepWorld(w, neutral);
+  near(w.player.x, 3.2); assert.equal(w.player.dashRemaining, 0);
+  for (let i = 12; i < 95; i++) stepWorld(w, neutral);
+  assert.equal(w.player.cooldown, 1);
+  stepWorld(w, neutral);
   assert.equal(w.player.cooldown, 0);
   stepWorld(w, { ...neutral, dash: true }); assert.equal(w.player.dashRemaining, 11);
 });

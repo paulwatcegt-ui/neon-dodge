@@ -10,7 +10,9 @@ export function spawnEnemy(world, x, z, type = 'shooter') {
     state: 'approach', timer: 0, windupTicks: 42, aimX: 0, aimZ: 1, targetX: x, targetZ: z });
 }
 export function updateEnemies(world) {
-  for (const e of world.enemies) {
+  // Rotate scheduling priority so full-cap scenes do not starve later enemy IDs.
+  for (let i = 0; i < world.enemies.length; i++) {
+    const e = world.enemies[(i + Math.floor(world.tick / 12)) % world.enemies.length];
     e.previousX = e.x; e.previousZ = e.z;
     if (e.state === 'recover') { if (--e.timer <= 0) e.state = 'approach'; continue; }
     UPDATE[e.type](world, e);

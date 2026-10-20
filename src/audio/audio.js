@@ -1,5 +1,5 @@
 const NOTES = { dash: [180, 420, 0.12], perfect: [660, 1320, 0.22], graze: [820, 1000, 0.06],
-  pulse: [170, 45, 0.35], damaged: [120, 50, 0.15], victory: [660, 990, 0.4], defeated: [220, 55, 0.5] };
+  pulse: [170, 45, 0.35], damaged: [120, 50, 0.15], defeated: [220, 55, 0.5] };
 export function createAudio() {
   let context = null, enabled = true, playing = false, disposed = false, lastTick = -1, tickNotes = 0;
   const voices = new Set();

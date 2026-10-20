@@ -1,7 +1,7 @@
 import { directionToPlayer, moveEnemy, prepare, recover, threat } from './common.js';
 export function updateZoner(world, e) {
   if (e.state === 'windup') {
-    if (--e.timer === 0) { threat(world, { kind: 'zone', ownerId: e.id, x: e.targetX, z: e.targetZ, radius: 1.4, life: 48 }); recover(e, 150); }
+    if (--e.timer === 0) { threat(world, { kind: 'zone', ownerId: e.id, x: e.targetX, z: e.targetZ, radius: 1.4, life: 48 }); recover(world, e, 108); }
     return;
   }
   const d = directionToPlayer(world, e);

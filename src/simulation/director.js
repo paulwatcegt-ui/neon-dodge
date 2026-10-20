@@ -1,4 +1,4 @@
-import { STAGES, stageIndex } from '../config/difficulty.js';
+import { STAGES, stageIndex, PATTERNS, patternIndex } from '../config/difficulty.js';
 import { contains } from './arena.js';
 import { COMBAT } from '../config/combat.js';
 import { spawnEnemy } from './enemies.js';
@@ -7,6 +7,10 @@ import { difficultyLimits } from './adaptiveDifficulty.js';
 export function updateDirector(world) {
   const index = stageIndex(world.tick);
   if (index !== world.stage) { world.stage = index; emit(world, 'stage', { number: index + 1, name: STAGES[index].name }); }
+  const pattern = patternIndex(world.tick);
+  if (pattern !== world.pattern) {
+    world.pattern = pattern; emit(world, 'pattern', { name: PATTERNS[pattern].name });
+  }
   const stage = STAGES[index];
   const limits = difficultyLimits(world);
   if (world.tick < world.nextSpawnAt) return;
@@ -15,7 +19,8 @@ export function updateDirector(world) {
   const pool = stage.types.filter(type => world.enemies.filter(e => e.type === type).length < (type === 'zoner' ? 2 : type === 'shooter' ? 4 : stage.cap));
   if (!pool.length) return;
   const missing = pool.filter(type => !world.enemies.some(e => e.type === type));
-  const choices = missing.length ? missing : pool;
+  const focused = pattern < 0 ? [] : pool.filter(type => PATTERNS[pattern].focus.includes(type));
+  const choices = missing.length ? missing : focused.length ? focused : pool;
   for (let attempt = 0; attempt < 24; attempt++) {
     const a = world.rng.range(0, Math.PI * 2), point = { x: Math.sin(a) * 10.2, z: Math.cos(a) * 10.2 };
     if (!contains(world.arena, point, COMBAT.enemyRadius) || Math.hypot(point.x - world.player.x, point.z - world.player.z) < 5) continue;

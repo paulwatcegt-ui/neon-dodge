@@ -1,4 +1,4 @@
-import { STAGES } from '../config/difficulty.js';
+import { STAGES, endlessTier } from '../config/difficulty.js';
 import { emit } from '../core/events.js';
 
 export const PRESSURE_NAMES = Object.freeze({ relief: '缓冲', standard: '标准', pressure: '强化' });
@@ -13,16 +13,18 @@ export function createAdaptiveDifficulty() {
 
 /** Limits affect future spawns/attack starts only; active threats retain their timing. */
 export function difficultyLimits(world) {
-  const stage = STAGES[world.stage], mode = world.adaptive.mode;
+  const stage = STAGES[world.stage], mode = world.gameMode === 'practice' ? world.adaptive.mode : 'standard';
+  const interval = stage.spawnEvery - endlessTier(world.tick);
   return {
     cap: mode === 'relief' ? Math.max(3, Math.floor(stage.cap * 0.75)) : stage.cap,
     attackers: mode === 'relief' ? Math.max(1, stage.attackers - 1) : stage.attackers,
-    spawnEvery: Math.round(stage.spawnEvery * (mode === 'relief' ? 1.4 : mode === 'pressure' ? 0.85 : 1)),
+    spawnEvery: Math.max(30, Math.round(interval * (mode === 'relief' ? 1.4 : mode === 'pressure' ? 0.85 : 1))),
   };
 }
 
 /** Called after combat. Rewards are counted, never inferred from score or wall time. */
 export function updateAdaptiveDifficulty(world) {
+  if (world.gameMode !== 'practice') return;
   const a = world.adaptive, tick = world.tick;
   const damaged = world.player.hp < a.hp;
   if (damaged) a.lastDamageAt = tick;

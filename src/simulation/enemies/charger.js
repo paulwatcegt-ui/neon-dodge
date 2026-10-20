@@ -7,14 +7,14 @@ export function updateCharger(world, e) {
     } return;
   }
   if (e.state === 'charge') {
-    const moved = moveEnemy(world, e, e.aimX, e.aimZ, 14);
+    const moved = moveEnemy(world, e, e.aimX, e.aimZ, e.chargeSpeed, 1);
     if (--e.timer <= 0 || moved.collided) {
       const attack = world.projectiles.find(b => b.id === e.threatId);
       if (attack) attack.life = 1;
-      recover(e, 90);
+      recover(world, e, 72);
     } return;
   }
   const d = directionToPlayer(world, e);
   if (d.distance > 9) moveEnemy(world, e, d.x, d.z, 2);
-  else if (prepare(world, e, 48)) { e.targetX = e.x + e.aimX * 8; e.targetZ = e.z + e.aimZ * 8; }
+  else prepare(world, e, 48);
 }

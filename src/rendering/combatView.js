@@ -12,6 +12,7 @@ export function createCombatView(scene) {
   const projectileBatch = createProjectileBatch(scene);
   const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff865c, transparent: true, opacity: 0.65 });
   const ringGeometry = new THREE.RingGeometry(0.94, 1, 64);
+  const chargeWarningGeometry = new THREE.PlaneGeometry(1, 1);
   const rings = Array.from({ length: 12 }, () => {
     const mesh = new THREE.Mesh(ringGeometry, new THREE.MeshBasicMaterial({
       transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false }));
@@ -51,7 +52,7 @@ export function createCombatView(scene) {
         const body = new THREE.Mesh(bodyGeometries[e.type], bodyMaterials[e.type]); body.position.y = 0.6; body.castShadow = true; group.add(body);
         const geometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
         const line = new THREE.Line(geometry, lineMaterial); group.add(line); group.userData.line = line;
-        const warning = new THREE.Mesh(ringGeometry, new THREE.MeshBasicMaterial({ color: colors[e.type], side: THREE.DoubleSide,
+        const warning = new THREE.Mesh(e.type === 'charger' ? chargeWarningGeometry : ringGeometry, new THREE.MeshBasicMaterial({ color: colors[e.type], side: THREE.DoubleSide,
           transparent: true, opacity: 0.7, depthWrite: false }));
         warning.rotation.x = -Math.PI / 2; group.add(warning); group.userData.warning = warning;
         return group;
@@ -62,13 +63,21 @@ export function createCombatView(scene) {
         const line = object.userData.line;
         line.visible = e.state === 'windup' && (e.type === 'shooter' || e.type === 'charger');
         const warning = object.userData.warning;
-        warning.visible = e.state === 'windup' && (e.type === 'chaser' || e.type === 'zoner');
+        warning.visible = e.state === 'windup' && e.type !== 'shooter';
         if (warning.visible) {
+          if (e.type === 'charger') {
+            const dx = e.targetX - e.x, dz = e.targetZ - e.z;
+            warning.position.set(dx / 2, 0.055, dz / 2);
+            warning.rotation.z = Math.atan2(dx, dz);
+            warning.scale.set(1, Math.hypot(dx, dz), 1);
+            warning.material.opacity = 0.12 + 0.18 * (1 - e.timer / e.windupTicks);
+          } else {
           const melee = e.type === 'chaser';
           warning.position.set(melee ? e.aimX * 0.65 : e.targetX - object.position.x, 0.055,
             melee ? e.aimZ * 0.65 : e.targetZ - object.position.z);
           warning.scale.setScalar(melee ? 0.85 : 1.4);
           warning.material.opacity = 0.35 + 0.55 * (1 - e.timer / e.windupTicks);
+          }
         }
         const positions = line.geometry.attributes.position;
         positions.setXYZ(0, 0, 0.06, 0);
@@ -109,7 +118,7 @@ export function createCombatView(scene) {
     dispose() {
       this.reset(); Object.values(bodyGeometries).forEach(g => g.dispose()); Object.values(bodyMaterials).forEach(m => m.dispose());
       projectileBatch.dispose();
-      lineMaterial.dispose(); ringGeometry.dispose();
+      lineMaterial.dispose(); ringGeometry.dispose(); chargeWarningGeometry.dispose();
       rings.forEach(r => { scene.remove(r.mesh); r.mesh.material.dispose(); });
     },
   };

@@ -6,6 +6,7 @@ import { createCombatView } from './combatView.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { createPost } from './postprocessing.js';
 import { createActionEffects } from './actionEffects.js';
+import { playfieldRect } from './playfield.js';
 
 export function createView(canvas, arena) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
@@ -35,13 +36,15 @@ export function createView(canvas, arena) {
   const player = createPlayerView(); scene.add(player.group);
   const combat = createCombatView(scene);
   const effects = createActionEffects(scene);
-  const cameraRig = createCamera();
+  const cameraRig = createCamera(arena);
   const post = createPost(renderer, scene, cameraRig.camera);
   const basePosition = new THREE.Vector3();
-  let quality = 'balanced', reducedMotion = false, lastFrame = performance.now(), lastWorld;
+  let quality = 'balanced', reducedMotion = false, lastFrame = performance.now(), lastWorld, playfield;
   function resize() {
-    renderer.setSize(innerWidth, innerHeight, false); cameraRig.resize(innerWidth, innerHeight);
-    post.resize(innerWidth, innerHeight, renderer.getPixelRatio());
+    playfield = playfieldRect(innerWidth, innerHeight);
+    Object.assign(canvas.style, { position: 'absolute', left: `${playfield.x}px`, top: `${playfield.y}px`, width: `${playfield.width}px`, height: `${playfield.height}px` });
+    renderer.setSize(playfield.width, playfield.height, false); cameraRig.resize(playfield.width, playfield.height);
+    post.resize(playfield.width, playfield.height, renderer.getPixelRatio());
     basePosition.copy(cameraRig.camera.position);
     // Narrow windows move the camera farther away; keep the arena out of fog.
     const distance = cameraRig.camera.position.length();
@@ -50,7 +53,7 @@ export function createView(canvas, arena) {
   resize(); window.addEventListener('resize', resize);
   return {
     basis: cameraRig.basis,
-    metrics: () => ({ quality, calls: renderer.info.render.calls, triangles: renderer.info.render.triangles,
+    metrics: () => ({ quality, playfield: { ...playfield }, framing: cameraRig.framing(), calls: renderer.info.render.calls, triangles: renderer.info.render.triangles,
       geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures }),
     async prepare(world = lastWorld) {
       lastWorld = world;

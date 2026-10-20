@@ -43,8 +43,8 @@ test('keyboard consumes dash edge once, ignores repeats, clears on blur and disp
     const event = new Event(type, { cancelable: true }); Object.assign(event, { code, repeat }); target.dispatchEvent(event);
   }
   key('keydown', 'KeyW'); key('keydown', 'Space');
-  assert.deepEqual(input.sample(), { x: 0, z: -1, dash: true });
+  assert.deepEqual(input.sample(), { x: 0, z: -1, dash: true, pulse: false });
   key('keydown', 'Space', true); assert.equal(input.sample().dash, false);
-  target.dispatchEvent(new Event('blur')); assert.deepEqual(input.sample(), { x: 0, z: 0, dash: false });
+  target.dispatchEvent(new Event('blur')); assert.deepEqual(input.sample(), { x: 0, z: 0, dash: false, pulse: false });
   assert.equal(paused, 1); input.dispose(); key('keydown', 'Escape'); assert.equal(paused, 1);
 });

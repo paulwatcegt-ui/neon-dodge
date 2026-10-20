@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
+import { RECORDS_KEY } from '../../src/storage/records.js';
 
 // Browser-owned fixtures import real modules; no setters/cheats are added to the game.
 async function fixture(page, setup, mode = 'standard') {
@@ -31,7 +32,7 @@ test('all four enemy views and telegraphs render on stage four without errors', 
     spawnEnemy(w, 0, -5, 'shooter'); spawnEnemy(w, 1, 0, 'chaser');
     spawnEnemy(w, -5, 0, 'charger'); spawnEnemy(w, 5, 1, 'zoner');
     s.step({x:0,z:0});`);
-  await expect(page.locator('#stage-text')).toHaveText('阶段 4 / 5 · 过载');
+  await expect(page.locator('#stage-text')).toHaveText('阶段 4 / 7 · 狙击交火');
   await page.screenshot({ path: 'test-results/phase3-four-enemies.png' });
   expect(errors).toEqual([]);
 });
@@ -48,12 +49,12 @@ test('death after 600s shows full summary and one versioned local record', async
   await expect(page.locator('#result-perfect')).toHaveText('4');
   await page.locator('.local-board summary').click();
   await expect(page.locator('#local-records li')).toHaveCount(1);
-  const record = await page.evaluate(() => JSON.parse(localStorage.getItem('neon-dodge.records.v2')));
+  const record = await page.evaluate(key => JSON.parse(localStorage.getItem(key)),RECORDS_KEY);
   expect(record.boards.standard[0].score).toBe(1010); expect(record.boards.standard).toHaveLength(1);
   expect(record.boards.practice).toHaveLength(0);
   await page.screenshot({ path: 'test-results/endless-summary.png' });
   await page.goto('http://127.0.0.1:5181/');
-  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('neon-dodge.records.v2')).boards.standard[0].score)).toBe(1010);
+  expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)).boards.standard[0].score,RECORDS_KEY)).toBe(1010);
 });
 
 test('pressure HUD reflects damage relief and stays frozen during pause', async ({ page }) => {

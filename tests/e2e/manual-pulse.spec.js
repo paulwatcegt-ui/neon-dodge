@@ -1,0 +1,34 @@
+import {test,expect} from '@playwright/test';
+import {readFileSync} from 'node:fs';
+test('real E input spends full energy once, interrupts enemies and remains inactive during pause',async({page})=>{
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  const html=readFileSync(new URL('../../index.html',import.meta.url),'utf8');
+  const script=`<script type="module">
+  import '/src/styles/main.css';import '/src/styles/layout.css';import '/src/styles/combat.css';import '/src/styles/presentation.css';import '/src/styles/survival.css';import '/src/styles/immersive.css';
+  import {createSession} from '/src/core/session.js';import {createClock} from '/src/core/gameLoop.js';import {createKeyboard} from '/src/input/keyboard.js';
+  import {spawnEnemy} from '/src/simulation/enemies.js';import {createView} from '/src/rendering/renderer.js';import {createUI} from '/src/ui/screens.js';
+  const s=createSession(),w=s.world;w.enemies=[];w.nextSpawnAt=Infinity;w.player.energy=100;
+  spawnEnemy(w,-3,0,'charger');spawnEnemy(w,2,0,'sniper');spawnEnemy(w,0,-7,'shooter');
+  w.projectiles.push({id:900,kind:'bullet',x:2,z:2,previousX:2,previousZ:2,vx:0,vz:0,radius:0.16,life:900,outcome:null});
+  const view=createView(document.getElementById('arena'),w.arena);view.setQuality('low');await view.prepare(w);
+  const pause=()=>{s.pause('manual');keyboard.clear();clock.reset();};
+  const resume=()=>{s.start();keyboard.clear();clock.reset();};
+  const ui=createUI({resume,pause,reset(){}}),keyboard=createKeyboard({basis:view.basis,isRunning:()=>s.mode==='running',togglePause:()=>s.mode==='running'?pause():resume(),onBlur:pause});
+  const clock=createClock(()=>{s.step(keyboard.sample());view.consume(w.events);ui.consume(w.events);return s.mode==='running';},pause);
+  function draw(now){if(s.mode==='running')clock.advance(now);view.render(w,1);ui.update(s);requestAnimationFrame(draw);}requestAnimationFrame(draw);
+  window.__pulse=()=>structuredClone({mode:s.mode,tick:w.tick,energy:w.player.energy,pulses:w.stats.pulses,enemies:w.enemies,threats:w.projectiles});
+  </script>`;
+  await page.route('**/pulse-fixture.html',r=>r.fulfill({contentType:'text/html',body:html.replace('<script type="module" src="/src/main.js"></script>',script)}));
+  await page.goto('http://127.0.0.1:5181/pulse-fixture.html');await page.waitForFunction(()=>window.__pulse);
+  await expect(page.locator('#pulse-hint')).toContainText('释放脉冲');
+  await page.getByRole('button',{name:/开始测试/}).click();
+  await page.screenshot({path:'test-results/manual-pulse-ready.png'});await page.keyboard.press('KeyE');
+  await expect.poll(()=>page.evaluate(()=>window.__pulse().pulses)).toBe(1);
+  const state=await page.evaluate(()=>window.__pulse());expect(state.energy).toBe(0);
+  expect(state.enemies.filter(e=>e.state==='stunned')).toHaveLength(2);expect(state.threats.some(b=>b.id===900)).toBe(false);
+  await page.keyboard.press('KeyE');expect((await page.evaluate(()=>window.__pulse())).pulses).toBe(1);
+  await page.getByRole('button',{name:'暂停',exact:true}).click();const before=await page.evaluate(()=>window.__pulse());
+  await page.keyboard.press('KeyE');await page.waitForTimeout(150);expect(await page.evaluate(()=>window.__pulse())).toEqual(before);
+  await page.getByRole('button',{name:/继续训练/}).click();await page.screenshot({path:'test-results/manual-pulse-stun.png'});
+  expect(errors).toEqual([]);
+});

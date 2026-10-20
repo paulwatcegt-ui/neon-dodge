@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { RECORDS_KEY } from '../../src/storage/records.js';
 
 const state = page => page.evaluate(() => window.__ND.snapshot());
 async function start(page) {
@@ -37,7 +38,7 @@ test('three real hits end training and restart creates a fresh combat session', 
   await expect(page.getByRole('button', { name: /重新训练/ })).toBeVisible({ timeout: 15000 });
   const ended = await state(page); expect(ended.mode).toBe('defeated'); expect(ended.player.hp).toBe(0);
   await expect(page.locator('#result-summary')).toBeVisible();
-  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('neon-dodge.records.v2')).boards.standard[0].score)).toBe(ended.score.value);
+  expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)).boards.standard[0].score,RECORDS_KEY)).toBe(ended.score.value);
   await page.waitForTimeout(150); expect((await state(page)).tick).toBe(ended.tick);
   await page.getByRole('button', { name: /重新训练/ }).click();
   const restarted = await state(page); expect(restarted.mode).toBe('running'); expect(restarted.player.hp).toBe(3);

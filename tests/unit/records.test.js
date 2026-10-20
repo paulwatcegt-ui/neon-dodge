@@ -35,3 +35,11 @@ test('unfinished runs, invalid data, old finite rules and storage failures canno
   const loaded = createRecords({ getItem: () => JSON.stringify(malformed) });
   assert.equal(loaded.list().length, 1); assert.equal(loaded.list('practice').length, 0);
 });
+
+test('balance records use a rule-scoped key and never overwrite earlier endless boards',()=>{
+  const old='{"schemaVersion":2,"boards":{"standard":[{"gameVersion":"endless-1.0.0","score":9999}]}}';
+  const data=new Map([['neon-dodge.records.v2',old]]);
+  const r=createRecords({getItem:key=>data.get(key),setItem:(key,value)=>data.set(key,value)});
+  assert.equal(r.read().score,0);r.saveResult(dead('new-balance'));
+  assert.equal(data.get('neon-dodge.records.v2'),old);assert.ok(data.has(RECORDS_KEY));assert.ok(RECORDS_KEY.endsWith(RULES_VERSION));
+});

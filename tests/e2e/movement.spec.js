@@ -9,6 +9,8 @@ test('production subpath: movement, dash, pause, blur, reset; no external reques
   await expect(page.getByRole('button', { name: /开始测试/ })).toBeVisible();
   // Let initial shader compilation settle before measuring the simulation.
   await page.waitForTimeout(600);
+  await page.locator('#settings summary').click(); await page.locator('#quality').selectOption('low');
+  await page.locator('#settings summary').click();
   await page.getByRole('button', { name: /开始测试/ }).click();
   await page.keyboard.down('KeyD'); await page.waitForTimeout(250); await page.keyboard.up('KeyD');
   const moved = await snapshot(page); expect(moved.mode).toBe('running'); expect(moved.player.x).toBeGreaterThan(0.2);

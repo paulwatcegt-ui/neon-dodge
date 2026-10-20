@@ -14,7 +14,7 @@ import { awardScore, updateScore, multiplier } from '../../src/simulation/scorin
 function empty() { const w = createWorld(); w.enemies = []; w.nextSpawnAt = Infinity; return w; }
 const idle = { x: 0, z: 0 };
 
-test('five stages change on exact simulation tick boundaries', () => {
+test('stages change on exact simulation tick boundaries', () => {
   for (let i = 1; i < STAGES.length; i++) {
     assert.equal(stageIndex(STAGES[i].start - 1), i - 1);
     assert.equal(stageIndex(STAGES[i].start), i);
@@ -26,7 +26,7 @@ test('five stages change on exact simulation tick boundaries', () => {
 
 test('director respects safe distance, type quotas, stage caps and introduces new types', () => {
   const w = empty(); const seen = new Set();
-  for (let stage = 0; stage < 5; stage++) {
+  for (let stage = 0; stage < STAGES.length; stage++) {
     for (let n = 0; n < 100; n++) {
       w.tick = STAGES[stage].start + n; w.nextSpawnAt = w.tick;
       updateDirector(w);
@@ -39,7 +39,7 @@ test('director respects safe distance, type quotas, stage caps and introduces ne
       assert.ok(w.enemies.filter(e => e.type === 'shooter').length <= 4);
     }
   }
-  assert.deepEqual([...seen].sort(), ['charger', 'chaser', 'shooter', 'zoner']);
+  assert.deepEqual([...seen].sort(), ['blaster', 'charger', 'chaser', 'orbiter', 'shooter', 'sniper', 'spread', 'zoner']);
 });
 
 test('chaser approaches, telegraphs, and generates one close attack', () => {
@@ -77,9 +77,10 @@ test('dangerous concurrent windups are capped and pulse removes attached chargin
   assert.equal(w.enemies.filter(e => e.state === 'windup').length, 2);
   for (let i = 13; i < 62; i++) { w.tick = i; updateEnemies(w); }
   assert.ok(w.projectiles.length > 0);
-  w.player.energy = 100; w.pulseQueuedAt = -1; releasePulse(w);
-  assert.equal(w.enemies.length, 0); assert.equal(w.projectiles.length, 0);
-  assert.equal(w.stats.kills, 8); assert.equal(w.player.energy, 0);
+  w.player.energy = 100; releasePulse(w,true);
+  assert.equal(w.enemies.length, 8); assert.equal(w.projectiles.length, 0);
+  assert.ok(w.enemies.every(e=>e.state==='stunned'));
+  assert.equal(w.stats.kills, 0); assert.equal(w.player.energy, 0);
 });
 
 test('combo grows on actions, caps multiplier, expires exactly and resets on damage', () => {

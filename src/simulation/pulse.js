@@ -1,19 +1,21 @@
 import { COMBAT } from '../config/combat.js';
 import { emit } from '../core/events.js';
-import { awardScore } from './scoring.js';
 
-export function releasePulse(world) {
-  if (world.player.hp <= 0 || world.pulseQueuedAt === null || world.pulseQueuedAt >= world.tick) return;
+export function releasePulse(world, requested = false) {
+  if (!requested || world.player.hp <= 0 || world.outcome) return false;
   const p = world.player;
-  if (p.energy < COMBAT.energyMax) { world.pulseQueuedAt = null; return; }
-  p.energy -= COMBAT.energyMax; world.pulseQueuedAt = null;
+  if (p.energy < COMBAT.energyMax) { emit(world,'pulseDenied'); return false; }
+  p.energy -= COMBAT.energyMax;
   const within = e => Math.hypot(e.x - p.x, e.z - p.z) <= COMBAT.pulseRadius;
-  const victims = world.enemies.filter(within);
-  const victimIds = new Set(victims.map(e => e.id));
-  world.enemies = world.enemies.filter(e => !within(e));
-  world.projectiles = world.projectiles.filter(b => !within(b) && !(b.attachedTo && victimIds.has(b.attachedTo)));
-  for (const victim of victims) { awardScore(world, 'kill'); emit(world, 'enemyKilled', { x: victim.x, z: victim.z, enemyType: victim.type }); }
-  world.stats.kills += victims.length; world.stats.pulses++;
-  emit(world, 'pulse', { x: p.x, z: p.z, kills: victims.length });
-  // Pulse kills and projectile clearing intentionally generate no energy.
+  const affected = world.enemies.filter(within), affectedIds = new Set(affected.map(e=>e.id));
+  const before = world.projectiles.length;
+  world.projectiles = world.projectiles.filter(b=>!within(b)&&!(b.attachedTo&&affectedIds.has(b.attachedTo)));
+  for(const e of affected){
+    e.state='stunned';e.stunUntil=world.tick+COMBAT.stunTicks;e.timer=0;e.burstRemaining=0;e.orbitTicks=90;
+    delete e.threatId;
+  }
+  world.stats.pulses++;
+  emit(world,'pulse',{x:p.x,z:p.z,stunned:affected.length,cleared:before-world.projectiles.length});
+  // Clearing and stunning never award score, combo, energy or kills.
+  return true;
 }

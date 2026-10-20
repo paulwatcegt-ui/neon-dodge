@@ -37,7 +37,7 @@ export function updateThreats(world, perfectAge = Infinity) {
       b.outcome ??= 'hit'; p.hp--; p.protection = COMBAT.protectionTicks;
       breakCombo(world);
       emit(world, 'damaged', { x: p.x, z: p.z, hp: p.hp });
-      if (p.hp === 0) { world.pulseQueuedAt = null; emit(world, 'defeated'); }
+      if (p.hp === 0) emit(world, 'defeated');
     }
   }
   for (const b of world.projectiles) {

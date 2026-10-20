@@ -63,8 +63,8 @@ test('browser simulates beyond ten minutes with real rendering, pulses and bound
       while(s.world.tick<target){
         const end=Math.min(target,s.world.tick+120);
         while(s.world.tick<end){const w=s.world;w.player.protection=100;
-          if(w.tick%600===0){w.player.energy=100;w.pulseQueuedAt=w.tick-1;}
-          s.step({x:0,z:0});view.consume(w.events);
+          const pulse=w.tick%600===0;if(pulse)w.player.energy=100;
+          s.step({x:0,z:0,pulse});view.consume(w.events);
           if(w.pattern>=0)patterns.add(w.pattern);
           maxEnemies=Math.max(maxEnemies,w.enemies.length);maxThreats=Math.max(maxThreats,w.projectiles.length);
         }

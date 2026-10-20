@@ -21,7 +21,7 @@ export function createUI({ resume, pause, reset, selectMode = () => {}, getBest 
     consume(events) {
       for (const e of events) {
         const message = { perfect: '完美闪避 +25', graze: '擦弹 +10', pulseReady: '能量满载',
-          pulse: '范围脉冲', damaged: '装甲受损', stage: `阶段 ${e.number} · ${e.name}`, pattern: `战术切换 · ${e.name}` }[e.type];
+          pulse: '防御脉冲 · 瘫痪 1.5s', pulseDenied: '能量不足 · 需要 100', damaged: '装甲受损', stage: `阶段 ${e.number} · ${e.name}`, pattern: `战术切换 · ${e.name}` }[e.type];
         if (message) { get('combat-feedback').textContent = message; feedbackUntil = e.tick + 60; }
       }
     },
@@ -39,7 +39,7 @@ export function createUI({ resume, pause, reset, selectMode = () => {}, getBest 
         if (!running) {
           title.textContent = session.mode === 'ready' ? '进入竞技场' : session.mode === 'defeated' ? '本局结束' : '对局已暂停';
           const reasons = { focus: '窗口已失焦。点击继续后重新进入训练。', performance: '检测到较长帧间隔，已暂停以避免跳过碰撞。你可以继续测试。', manual: '休息一下，准备好后继续。' };
-          description.textContent = session.mode === 'ready' ? '无限生存，装甲耗尽才结束。冲刺 3.2 米 / 冷却 1.6 秒；前 0.15 秒接触威胁触发完美闪避，100 能量自动脉冲。标准模式受伤不降难度，练习模式成绩单独记录。' : finished ? `完美闪避 ${session.world.stats.perfect} 次 · 擦弹 ${session.world.stats.graze} 次 · 脉冲 ${session.world.stats.pulses} 次` : reasons[session.reason];
+          description.textContent = session.mode === 'ready' ? '无限生存，八种敌人逐步解锁。WASD 移动，Space 冲刺；0.15 秒完美闪避积能，满 100 后按 E 清弹并瘫痪范围内敌人 1.5 秒。脉冲不造成击杀。标准与练习成绩独立。' : finished ? `完美闪避 ${session.world.stats.perfect} 次 · 擦弹 ${session.world.stats.graze} 次 · 脉冲 ${session.world.stats.pulses} 次` : reasons[session.reason];
           resumeButton.textContent = session.mode === 'ready' ? '开始测试 ↗' : finished ? '重新训练 ↗' : '继续训练 ↗';
           get('result-summary').hidden = !finished;
           if (finished) {
@@ -69,10 +69,12 @@ export function createUI({ resume, pause, reset, selectMode = () => {}, getBest 
       get('combo-value').textContent = `${score.combo} 连击 / ×${multiplier(score.combo).toFixed(1)}`;
       get('combo-fill').style.transform = `scaleX(${score.combo ? Math.max(0, (score.expiresAt - session.world.tick) / 180) : 0})`;
       get('time-value').textContent = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, '0')}`;
-      get('stage-text').textContent = `阶段 ${session.world.stage + 1} / 5 · ${STAGES[session.world.stage].name}`;
+      get('stage-text').textContent = `阶段 ${session.world.stage + 1} / ${STAGES.length} · ${STAGES[session.world.stage].name}`;
       get('pressure-text').textContent = `${MODE_NAMES[gameMode]} · ${gameMode === 'standard' ? '固定规则' : PRESSURE_NAMES[session.world.adaptive.mode]}` + (session.world.pattern >= 0 ? ` · ${PATTERNS[session.world.pattern].name}` : '');
       get('health').textContent = '◆'.repeat(p.hp) + '◇'.repeat(3 - p.hp);
       get('energy-value').textContent = `${p.energy} / 100`;
+      get('pulse-hint').textContent=p.energy>=100?'E · 释放脉冲 / 4m':'E · 需要 100 能量';
+      get('pulse-hint').parentElement.classList.toggle('is-ready',p.energy>=100);
       get('energy-fill').style.transform = `scaleX(${p.energy / 100})`;
       get('combat-stats').textContent = `完美 ${session.world.stats.perfect} · 擦弹 ${session.world.stats.graze} · 脉冲 ${session.world.stats.pulses}`;
       if (session.world.tick > feedbackUntil) get('combat-feedback').textContent = '';

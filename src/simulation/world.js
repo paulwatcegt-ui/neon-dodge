@@ -20,7 +20,7 @@ export function createWorld({ mode = 'standard', seed = 1001, runId = 'simulatio
     tick: 0, stage: 0, outcome: null, adaptive: createAdaptiveDifficulty(),
     score: { value: 0, combo: 0, bestCombo: 0, expiresAt: 0 },
     rng: makeRng(seed), nextEntityId: 1, nextEventId: 1, events: [],
-    enemies: [], projectiles: [], nextSpawnAt: 60, nextAttackAt: 0, pattern: -1, pulseQueuedAt: null,
+    enemies: [], projectiles: [], nextSpawnAt: 60, nextAttackAt: 0, nextRosterAt: 0, pattern: -1,
     stats: { perfect: 0, graze: 0, pulses: 0, kills: 0 },
     arena: createArena(GAME.apothem),
     player: { x: 0, z: 0, previousX: 0, previousZ: 0, facingX: 0, facingZ: -1,
@@ -61,9 +61,10 @@ export function stepWorld(world, command) {
   if (dashing) p.dashRemaining = result.collided ? 0 : p.dashRemaining - 1;
   if (dashing) p.dashAge++;
   if (p.cooldown > 0) p.cooldown--;
+  // Explicit input resolves before enemy attacks and collision; no auto-release on energy gain.
+  releasePulse(world, command.pulse === true);
   updateEnemies(world);
   updateThreats(world, perfectAge);
-  releasePulse(world);
   world.tick++;
   updateAdaptiveDifficulty(world);
   if (world.tick % 60 === 0) world.score.value += 10;

@@ -1,5 +1,6 @@
 import { RULES_VERSION, MODE_NAMES } from '../config/difficulty.js';
-export const RECORDS_KEY = 'neon-dodge.records.v2';
+// Preserve earlier rule sets rather than overwriting their scores on the first new run.
+export const RECORDS_KEY = `neon-dodge.records.v2.${RULES_VERSION}`;
 const valid = n => Number.isSafeInteger(n) && n >= 0;
 const validMode = mode => Object.hasOwn(MODE_NAMES, mode);
 function cleanRecord(r, mode) {

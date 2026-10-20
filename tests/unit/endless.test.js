@@ -40,7 +40,7 @@ test('multiple seeds and both modes continue past 180/300/600s with bounded live
       assert.ok(risky + w.projectiles.filter(b => b.kind === 'zone').length <= 2);
       if ([10801, 18001, 36001].includes(w.tick)) { assert.equal(s.mode, 'running'); assert.equal(w.outcome, null); }
     }
-    assert.equal(w.score.value, 6010); assert.equal(seen.size, 5); assert.equal(patterns.size, PATTERNS.length);
+    assert.equal(w.score.value, 6010); assert.equal(seen.size, STAGES.length); assert.equal(patterns.size, PATTERNS.length);
     assert.ok(fullCapChanges >= 10); assert.ok(lateShots >= 10);
   }
 });
@@ -48,8 +48,8 @@ test('multiple seeds and both modes continue past 180/300/600s with bounded live
 test('cycling tactics changes attack recovery at full cap; pressure is bounded indefinitely', () => {
   const w = createWorld(); w.stage = 4;
   const e = w.enemies[0]; e.type = 'charger';
-  w.tick = 7200; w.pattern = patternIndex(w.tick); recover(w, e, 72); const fast = e.timer;
-  w.tick = 8400; w.pattern = patternIndex(w.tick); recover(w, e, 72); assert.ok(e.timer > fast);
+  w.tick = 14400; w.pattern = patternIndex(w.tick); recover(w, e, 72); const fast = e.timer;
+  w.tick = 15600; w.pattern = patternIndex(w.tick); recover(w, e, 72); assert.ok(e.timer > fast);
   w.tick = 60 * 60 * 24 * 365; assert.ok(difficultyLimits(w).spawnEvery >= 30);
   assert.equal(difficultyLimits(w).cap, 24); assert.equal(difficultyLimits(w).attackers, 8);
 });
@@ -64,13 +64,13 @@ test('windups keep clear minimum warning and stagger starts; zones cannot stack'
   assert.equal(w.enemies[0].timer, 60); assert.equal(w.enemies[2].timer, 48);
 });
 
-test('pulse kills have flat bounded score, cannot extend dodge combo, regenerate energy or score twice', () => {
+test('pulse control grants no kill score, cannot extend dodge combo, regenerate energy or score twice', () => {
   const w = createWorld(); w.enemies = []; w.nextSpawnAt = Infinity;
   for (let i = 0; i < 12; i++) awardScore(w, 'perfect');
   const combo = structuredClone(w.score);
   for (let i = 0; i < 24; i++) spawnEnemy(w, 1, 1, 'chaser');
-  w.player.energy = 100; w.pulseQueuedAt = -1; releasePulse(w);
-  assert.equal(w.score.value - combo.value, 24 * 50);
+  w.player.energy = 100; releasePulse(w,true);
+  assert.equal(w.score.value, combo.value);assert.equal(w.enemies.length,24);assert.equal(w.stats.kills,0);
   assert.equal(w.score.combo, combo.combo); assert.equal(w.score.expiresAt, combo.expiresAt);
   assert.equal(w.player.energy, 0); const score = w.score.value;
   releasePulse(w); assert.equal(w.score.value, score);

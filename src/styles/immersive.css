@@ -1,0 +1,25 @@
+#app .topbar{height:52px;padding:8px 16px!important;background:#071116;border-bottom:1px solid #24403c}
+#app .wordmark{font-size:19px!important}#app .wordmark small,#app .status{display:none!important}
+#app .topbar .button{padding:8px 12px;height:34px}#fullscreen{position:absolute;right:100px;top:9px;z-index:31}
+#app #settings{top:9px;right:190px}#app #settings>summary{padding:9px 12px;font-size:11px}
+#app .settings-body{top:43px}#app .scene-note{left:16px!important;top:76px!important;width:126px}
+#app .scene-note .eyebrow,#app .scene-note h1,#app .scene-note p{display:none}
+#app .health-row{margin:0 0 12px;font-size:11px}#app .health-row strong{display:block;margin:8px 0;font-size:17px}
+#app .scene-note>small{font-size:10px;line-height:1.8}
+#app .run-hud{right:16px;left:auto;top:76px;width:124px;display:grid;gap:12px;padding:12px 9px;background:#0a171d}
+#app .run-hud strong{font-size:17px}#app .combo-info{min-width:0}#app .combo-info strong{font-size:10px;white-space:nowrap}
+#app .run-hud small{font-size:9px;letter-spacing:0}#app .telemetry{top:auto!important;bottom:90px;right:16px!important;max-width:126px;font-size:9px;background:#071116}
+#app .enemy-legend{left:16px;bottom:90px;width:126px;gap:7px;font-size:9px;line-height:1.5}
+#app .bottom-panel{left:16px!important;right:16px!important;bottom:10px!important;height:54px;padding:7px 12px!important;gap:20px!important;flex-wrap:nowrap!important;backdrop-filter:none}
+#app .instructions{flex:1;flex-basis:auto!important}#app .instructions .eyebrow,#app .energy-panel>small,#app .dash-panel>small{display:none}
+#app .instructions p{margin:0;gap:3px;flex-wrap:nowrap}#app .instructions p span{font-size:10px;margin:0 7px 0 1px!important}
+#app kbd{height:21px;min-width:19px;font-size:9px}#app kbd.wide{min-width:44px}
+#app .energy-panel,#app .dash-panel{width:175px!important;flex:0 1 175px;min-width:120px}
+#app .energy-panel>div:first-child,#app .dash-panel>div:first-child{font-size:10px;margin-bottom:6px}
+#app .bottom-panel>.button{padding:8px 12px}#app .combat-feedback{top:60px!important;font-size:13px}
+@media(max-width:1099px) and (min-width:760px){#app .scene-note,#app .run-hud,#app .enemy-legend,#app .telemetry{width:94px;max-width:94px}#app .scene-note,#app .enemy-legend{left:8px!important}#app .run-hud,#app .telemetry{right:8px!important}#app .run-hud{padding:8px 5px}#app .bottom-panel{gap:10px!important}#app .instructions p span{display:none}#app .energy-panel,#app .dash-panel{flex-basis:150px}}
+@media(max-width:759px){#app .run-hud{top:58px;left:12px;right:12px;width:auto;height:52px;display:flex;justify-content:space-between;padding:7px 10px;gap:12px}#app .run-hud small{font-size:8px;margin-bottom:4px}#app .run-hud strong{font-size:15px}#app .combo-info strong{font-size:9px;margin:5px 0}#app .scene-note{top:116px!important;left:12px!important;width:calc(100% - 24px);display:flex;justify-content:space-between;align-items:center}#app .health-row{margin:0}#app .health-row strong{display:inline;font-size:12px;margin-left:6px}#app .scene-note>small{font-size:9px}#app .enemy-legend{display:none}#app .telemetry{bottom:129px;right:12px!important;width:auto}#app .telemetry[open]{max-width:145px}#app .bottom-panel{left:12px!important;right:12px!important;height:106px;display:grid;grid-template-columns:1fr 1fr 60px;gap:7px 10px!important;padding:8px!important}#app .instructions{grid-column:1 / -1}#app .instructions p span{font-size:9px}#app .energy-panel,#app .dash-panel{width:auto!important;min-width:0}#app .energy-panel>div:first-child,#app .dash-panel>div:first-child{flex-direction:column;align-items:flex-start;gap:3px}#app .bottom-panel>.button{padding:9px 5px;font-size:10px}#app .combat-feedback{top:148px!important;font-size:11px}#app .wordmark{font-size:16px!important}#app #settings{right:154px}#app #settings>summary{font-size:10px;padding:9px}#fullscreen{right:67px}#app .topbar .button{font-size:10px;padding:8px}#app .settings-body{right:-130px}}
+#app .spread-key{color:#50dcff}#app .sniper-key{color:#ff557c}#app .orbiter-key{color:#879bff}#app .blaster-key{color:#b4ff53}
+#app .energy-panel #pulse-hint{display:block;font:9px/1.2 Consolas,'Microsoft YaHei',monospace;margin-top:4px;letter-spacing:0;color:#799b9c}
+#app .energy-panel.is-ready #pulse-hint{color:#b1ffe8}#app .energy-panel.is-ready .charge-track{box-shadow:0 0 10px #70ffd450}
+#app{min-height:0}#app .telemetry output{white-space:pre-wrap;overflow-wrap:anywhere;max-width:100%}

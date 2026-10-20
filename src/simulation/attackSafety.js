@@ -1,5 +1,6 @@
 import { GAME } from '../config/gameplay.js';
 import { contains, moveDisk } from './arena.js';
+import { ACTIVE_ATTACK_STATES } from '../config/enemies.js';
 
 function distanceToSegment(p, a, b) {
   const x = b.x - a.x, z = b.z - a.z, squared = x * x + z * z;
@@ -7,6 +8,9 @@ function distanceToSegment(p, a, b) {
   return Math.hypot(p.x - a.x - t * x, p.z - a.z - t * z);
 }
 function covered(point, attack) {
+  if (attack.type === 'spread') return [-Math.PI/9,0,Math.PI/9].some(angle=>distanceToSegment(point,attack,
+    {x:attack.x+(attack.aimX*Math.cos(angle)-attack.aimZ*Math.sin(angle))*30,z:attack.z+(attack.aimX*Math.sin(angle)+attack.aimZ*Math.cos(angle))*30})<0.16+GAME.playerRadius+0.15);
+  if (attack.type === 'blaster') return Math.hypot(point.x - attack.x, point.z - attack.z) < 2 + GAME.playerRadius + 0.15;
   if (attack.type === 'zoner') return Math.hypot(point.x - attack.targetX, point.z - attack.targetZ) < 1.4 + GAME.playerRadius + 0.15;
   if (attack.type === 'chaser') return Math.hypot(point.x - attack.x - attack.aimX * 0.65, point.z - attack.z - attack.aimZ * 0.65) < 0.85 + GAME.playerRadius;
   return distanceToSegment(point, attack, { x: attack.targetX, z: attack.targetZ }) < (attack.type === 'charger' ? 0.5 : 0.16) + GAME.playerRadius + 0.15;
@@ -18,7 +22,7 @@ function covered(point, attack) {
  */
 export function hasEscapePositions(world, candidate, ticks) {
   const radius = Math.min(3, GAME.moveSpeed * ticks * GAME.step * 0.8);
-  const active = world.enemies.filter(e => ['windup', 'charge'].includes(e.state));
+  const active = world.enemies.filter(e => ACTIVE_ATTACK_STATES.includes(e.state));
   const safe = [];
   for (let i = 0; i < 24; i++) {
     const angle = i * Math.PI / 12;

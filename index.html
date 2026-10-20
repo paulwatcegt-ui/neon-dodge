@@ -10,12 +10,13 @@
 </head>
 <body>
   <main id="app">
-    <canvas id="arena" aria-label="八边形竞技场，使用 WASD 移动，Space 冲刺"></canvas>
+    <canvas id="arena" aria-label="八边形竞技场，WASD 移动，Space 冲刺，满能量按 E 主动脉冲"></canvas>
     <div class="scene-vignette" aria-hidden="true"></div>
     <header class="topbar">
       <a class="wordmark" href="./">NEON<span> DODGE</span><small>ND—01 / COMBAT LAB</small></a>
       <div class="status"><span class="status-dot"></span>ENDLESS <b>无限生存挑战</b></div>
       <button id="pause" class="button quiet" aria-label="暂停">Ⅱ <span>暂停</span></button>
+      <button id="fullscreen" class="button quiet" aria-pressed="false">全屏</button>
     </header>
     <details id="settings" class="settings"><summary>设置</summary><div class="settings-body">
       <span class="eyebrow">DISPLAY / AUDIO / CHARACTER</span>
@@ -28,18 +29,18 @@
       <label>模型朝向<select id="model-rotation"><option value="0">默认</option><option value="90">旋转 90°</option><option value="180">旋转 180°</option><option value="270">旋转 270°</option></select></label>
       <button id="model-reset" class="button quiet">恢复临时角色</button></div>
     </div></details>
-    <aside class="scene-note"><span class="eyebrow">SYSTEM / 004</span><h1>在危险中积蓄反击。</h1><p>0.15 秒完美闪避 · 100 能量自动脉冲</p><div class="health-row">装甲 <strong id="health" aria-label="剩余生命">◆◆◆</strong></div><small id="combat-stats">完美 0 · 擦弹 0 · 脉冲 0</small></aside>
+    <aside class="scene-note"><span class="eyebrow">SYSTEM / 005</span><h1>在危险中积蓄反击。</h1><p>0.15 秒完美闪避 · 满能量按 E 脉冲</p><div class="health-row">装甲 <strong id="health" aria-label="剩余生命">◆◆◆</strong></div><small id="combat-stats">完美 0 · 擦弹 0 · 脉冲 0</small></aside>
     <div id="combat-feedback" class="combat-feedback" role="status" aria-live="polite"></div>
     <section class="run-hud" aria-label="本局状态">
       <div><small>SCORE</small><strong id="score-value">0</strong></div>
       <div><small>SURVIVAL</small><strong id="time-value">0:00</strong></div>
-      <div class="combo-info"><small id="stage-text">阶段 1 / 5 · 启动</small><strong id="combo-value">0 连击 / ×1.0</strong><div class="charge-track"><div id="combo-fill"></div></div></div>
+      <div class="combo-info"><small id="stage-text">阶段 1 / 7 · 交火</small><strong id="combo-value">0 连击 / ×1.0</strong><div class="charge-track"><div id="combo-fill"></div></div></div>
     </section>
-    <aside class="enemy-legend" aria-label="敌人类型"><span>◇ 射手</span><span>◆ 追猎</span><span>▲ 冲锋</span><span>⬡ 封锁</span><span id="pressure-text">战场压力 · 标准</span></aside>
+    <aside class="enemy-legend" aria-label="敌人类型"><span>◇ 射手</span><span>◆ 追猎</span><span>▲ 冲锋</span><span>⬡ 封锁</span><span class="spread-key">◉ 散射</span><span class="sniper-key">▰ 狙击</span><span class="orbiter-key">◈ 环绕</span><span class="blaster-key">✦ 爆裂</span><span id="pressure-text">战场压力 · 标准</span></aside>
     <div class="arena-label"><span>OCTAGON // TRAINING GROUND</span><span>12 M APOTHEM</span></div>
     <section class="bottom-panel" aria-label="操作和冲刺状态">
-      <div class="instructions"><span class="eyebrow">CONTROLS</span><p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> <span>移动</span><kbd class="wide">SPACE</kbd> <span>冲刺</span><kbd>ESC</kbd> <span>暂停</span></p></div>
-      <div class="energy-panel"><div><span>脉冲能量</span><strong id="energy-value">0 / 100</strong></div><div class="charge-track energy-track"><div id="energy-fill"></div></div><small>擦弹 +10 · 完美 +25</small></div>
+      <div class="instructions"><span class="eyebrow">CONTROLS</span><p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> <span>移动</span><kbd class="wide">SPACE</kbd> <span>冲刺</span><kbd>E</kbd><span>脉冲</span><kbd>ESC</kbd> <span>暂停</span></p></div>
+      <div class="energy-panel"><div><span>脉冲能量</span><strong id="energy-value">0 / 100</strong></div><div class="charge-track energy-track"><div id="energy-fill"></div></div><small id="pulse-hint">E · 需要 100 能量</small></div>
       <div class="dash-panel"><div><span>冲刺系统</span><strong id="dash-label">就绪 / READY</strong></div><div class="charge-track"><div id="dash-fill"></div></div><small>按下触发 · 撞墙停止</small></div>
       <button id="reset" class="button quiet">↺ 复位</button>
     </section>

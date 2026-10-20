@@ -5,6 +5,7 @@ import { normalize } from '../../shared/math.js';
 import { moveDisk } from '../arena.js';
 import { difficultyLimits } from '../adaptiveDifficulty.js';
 import { hasEscapePositions } from '../attackSafety.js';
+import { ENEMIES, ACTIVE_ATTACK_STATES, HIGH_RISK_TYPES } from '../../config/enemies.js';
 export function directionToPlayer(world, e) {
   const dx = world.player.x - e.x, dz = world.player.z - e.z;
   return { ...normalize(dx, dz), distance: Math.hypot(dx, dz) };
@@ -17,12 +18,13 @@ export function moveEnemy(world, e, x, z, speed, stageSpeed = STAGES[world.stage
 }
 export function prepare(world, e, ticks) {
   if (world.tick < world.nextAttackAt) return false;
-  const active = world.enemies.filter(a => a.state === 'windup' || a.state === 'charge');
-  if (world.projectiles.length + active.length >= COMBAT.projectileCap) return false;
+  const active = world.enemies.filter(a => ACTIVE_ATTACK_STATES.includes(a.state));
+  const reserved = active.reduce((sum, a) => sum + (ENEMIES[a.type]?.shots ?? 1), 0);
+  if (world.projectiles.length + reserved + ENEMIES[e.type].shots > COMBAT.projectileCap) return false;
   // Keep area denial and fast charges sparse, with visible gaps between attack starts.
   if (e.type === 'zoner' && (active.some(a => a.type === 'zoner') || world.projectiles.some(b => b.kind === 'zone'))) return false;
-  if (['zoner', 'charger'].includes(e.type) && active.filter(a => ['zoner', 'charger'].includes(a.type)).length + world.projectiles.filter(b => b.kind === 'zone').length >= 2) return false;
-  if (world.enemies.filter(a => a.state === 'windup' || a.state === 'charge').length >= difficultyLimits(world).attackers) return false;
+  if (HIGH_RISK_TYPES.includes(e.type) && active.filter(a => HIGH_RISK_TYPES.includes(a.type)).length + world.projectiles.filter(b => ['zone','blast'].includes(b.kind)).length >= 2) return false;
+  if (active.length >= difficultyLimits(world).attackers) return false;
   const aim = normalize(world.player.x - e.x, world.player.z - e.z);
   const plan = { ...e, aimX: aim.x || (aim.z === 0 ? 1 : 0), aimZ: aim.z,
     targetX: world.player.x, targetZ: world.player.z };
@@ -31,7 +33,9 @@ export function prepare(world, e, ticks) {
     const end = moveDisk(world.arena, e, { x: plan.aimX * plan.chargeSpeed * 0.5, z: plan.aimZ * plan.chargeSpeed * 0.5 }, COMBAT.enemyRadius, false);
     plan.targetX = end.x; plan.targetZ = end.z;
   }
-  if (['zoner', 'charger'].includes(e.type) && !hasEscapePositions(world, plan, ticks)) return false;
+  if (e.type === 'sniper') { plan.targetX = e.x + plan.aimX * 35; plan.targetZ = e.z + plan.aimZ * 35; }
+  if (e.type === 'blaster') { plan.targetX = e.x; plan.targetZ = e.z; }
+  if (HIGH_RISK_TYPES.includes(e.type) && !hasEscapePositions(world, plan, ticks)) return false;
   Object.assign(e, plan);
   world.nextAttackAt = world.tick + 12;
   e.state = 'windup'; e.timer = ticks; e.windupTicks = ticks; return true;

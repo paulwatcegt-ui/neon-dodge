@@ -74,23 +74,24 @@ test('contacts are resolved by impact time instead of projectile insertion order
   assert.equal(w.stats.perfect, 1); assert.equal(w.player.hp, 2);
 });
 
-test('full energy queues one next-step pulse; it spends 100 once, hits radius and never chains', () => {
+test('full energy waits for explicit pulse; it spends 100 once, stuns in radius and never kills or chains', () => {
   const w = world(); w.player.energy = 90;
   bullet(w, -1, 0.6, 120); updateThreats(w); assert.equal(w.player.energy, 100);
   releasePulse(w); assert.equal(w.stats.pulses, 0);
   spawnEnemy(w, 4, 0); spawnEnemy(w, 4.01, 0);
   bullet(w, 3, 0, 0); bullet(w, 5, 0, 0);
-  w.tick++; releasePulse(w); releasePulse(w);
-  assert.equal(w.stats.pulses, 1); assert.equal(w.player.energy, 0); assert.equal(w.stats.kills, 1);
-  assert.equal(w.enemies.length, 1); assert.equal(w.projectiles.length, 1);
+  w.tick++; releasePulse(w); assert.equal(w.stats.pulses,0);
+  releasePulse(w,true); releasePulse(w,true);
+  assert.equal(w.stats.pulses, 1); assert.equal(w.player.energy, 0); assert.equal(w.stats.kills, 0);
+  assert.equal(w.enemies.length, 2); assert.equal(w.enemies[0].state,'stunned');assert.equal(w.enemies[1].state,'approach');assert.equal(w.projectiles.length, 1);
   assert.equal(w.events.filter(e => e.type === 'pulse').length, 1);
 });
 
-test('lethal damage cancels queued pulse and session cannot resume a dead simulation', () => {
+test('holding full energy without E cannot prevent lethal damage, and dead simulation cannot release', () => {
   const session = createSession(); session.start(); const w = session.world;
-  w.enemies = []; w.nextSpawnAt = Infinity; w.player.hp = 1; w.player.energy = 100; w.pulseQueuedAt = -1;
+  w.enemies = []; w.nextSpawnAt = Infinity; w.player.hp = 1; w.player.energy = 100;
   bullet(w, -1, 0, 120); assert.equal(session.step({ x: 0, z: 0 }), false);
-  assert.equal(session.mode, 'defeated'); assert.equal(w.stats.pulses, 0); assert.equal(w.pulseQueuedAt, null);
+  assert.equal(session.mode, 'defeated'); assert.equal(w.stats.pulses, 0); assert.equal(releasePulse(w,true),false);
   const tick = w.tick; session.step({ x: 1, z: 0 }); assert.equal(w.tick, tick);
   session.reset(); assert.equal(session.world.player.hp, 3); assert.equal(session.world.projectiles.length, 0);
   assert.deepEqual(session.world.stats, { perfect: 0, graze: 0, pulses: 0, kills: 0 });
@@ -108,15 +109,15 @@ test('enemy aim locks at windup, attacks have a visible preparation, and pause f
   session.start(); session.step({ x: 0, z: 0 }); assert.equal(w.projectiles.length, 1);
 });
 
-test('four distinct perfect threats lead to exactly one automatic pulse and fresh energy', () => {
+test('four distinct perfect threats charge a held pulse; explicit release permits fresh energy', () => {
   const w = world(); spawnEnemy(w, 2, 0);
   for (let i = 0; i < 4; i++) {
     bullet(w, -1, 0, 120); updateThreats(w, 0); releasePulse(w);
     assert.equal(w.stats.pulses, 0); w.tick++;
   }
-  assert.equal(w.player.energy, 100); releasePulse(w);
+  assert.equal(w.player.energy, 100); releasePulse(w);assert.equal(w.stats.pulses,0);releasePulse(w,true);
   assert.equal(w.stats.perfect, 4); assert.equal(w.stats.pulses, 1);
-  assert.equal(w.stats.kills, 1); assert.equal(w.player.energy, 0);
+  assert.equal(w.stats.kills, 0); assert.equal(w.enemies.length,1); assert.equal(w.player.energy, 0);
   bullet(w, -1, 0, 120); updateThreats(w, 0);
   assert.equal(w.player.energy, 25); assert.equal(w.stats.pulses, 1);
 });

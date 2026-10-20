@@ -1,0 +1,30 @@
+# Dependencies, local tooling and build output
+node_modules/
+dist/
+.tools/
+.npm-cache/
+.sites-runtime/
+.vite/
+
+# Test output
+test-results/
+playwright-report/
+coverage/
+*.log
+
+# Local environment and credentials (keep documented examples)
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+
+# Editor and operating system files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo

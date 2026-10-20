@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#071116">
+  <meta name="description" content="NEON DODGE — 冲刺闪避、擦弹积能、范围脉冲，2.5D 赛博竞技场。">
+  <title>NEON DODGE · Combat Lab</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+</head>
+<body>
+  <main id="app">
+    <canvas id="arena" aria-label="八边形竞技场，使用 WASD 移动，Space 冲刺"></canvas>
+    <div class="scene-vignette" aria-hidden="true"></div>
+    <header class="topbar">
+      <a class="wordmark" href="./">NEON<span> DODGE</span><small>ND—01 / COMBAT LAB</small></a>
+      <div class="status"><span class="status-dot"></span>PHASE 04 <b>视觉与模型预览</b></div>
+      <button id="pause" class="button quiet" aria-label="暂停">Ⅱ <span>暂停</span></button>
+    </header>
+    <details id="settings" class="settings"><summary>设置</summary><div class="settings-body">
+      <span class="eyebrow">DISPLAY / AUDIO / CHARACTER</span>
+      <label>画质<select id="quality"><option value="low">流畅 · 关闭泛光与阴影</option><option value="balanced" selected>均衡 · 泛光与阴影</option><option value="high">精细 · 提高渲染分辨率</option></select></label>
+      <label class="check-label"><input type="checkbox" id="reduced-motion">减少粒子与震动</label>
+      <button id="sound-toggle" class="button quiet" aria-pressed="true">音效：开</button>
+      <div class="model-tools"><strong>角色预览</strong><p id="model-status" role="status">临时机械体 T-00 · 尚未导入 ND-01</p>
+      <label class="file-label">导入本地 GLB<input id="model-file" type="file" accept=".glb"></label>
+      <small>单文件内嵌贴图 · 最大 30 MB · 文件不上传</small>
+      <label>模型朝向<select id="model-rotation"><option value="0">默认</option><option value="90">旋转 90°</option><option value="180">旋转 180°</option><option value="270">旋转 270°</option></select></label>
+      <button id="model-reset" class="button quiet">恢复临时角色</button></div>
+    </div></details>
+    <aside class="scene-note"><span class="eyebrow">SYSTEM / 004</span><h1>在危险中积蓄反击。</h1><p>0.15 秒完美闪避 · 100 能量自动脉冲</p><div class="health-row">装甲 <strong id="health" aria-label="剩余生命">◆◆◆</strong></div><small id="combat-stats">完美 0 · 擦弹 0 · 脉冲 0</small></aside>
+    <div id="combat-feedback" class="combat-feedback" role="status" aria-live="polite"></div>
+    <section class="run-hud" aria-label="本局状态">
+      <div><small>SCORE</small><strong id="score-value">0</strong></div>
+      <div><small>TIME LEFT</small><strong id="time-value">3:00</strong></div>
+      <div class="combo-info"><small id="stage-text">阶段 1 / 5 · 启动</small><strong id="combo-value">0 连击 / ×1.0</strong><div class="charge-track"><div id="combo-fill"></div></div></div>
+    </section>
+    <aside class="enemy-legend" aria-label="敌人类型"><span>◇ 射手</span><span>◆ 追猎</span><span>▲ 冲锋</span><span>⬡ 封锁</span></aside>
+    <div class="arena-label"><span>OCTAGON // TRAINING GROUND</span><span>12 M APOTHEM</span></div>
+    <section class="bottom-panel" aria-label="操作和冲刺状态">
+      <div class="instructions"><span class="eyebrow">CONTROLS</span><p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> <span>移动</span><kbd class="wide">SPACE</kbd> <span>冲刺</span><kbd>ESC</kbd> <span>暂停</span></p></div>
+      <div class="energy-panel"><div><span>脉冲能量</span><strong id="energy-value">0 / 100</strong></div><div class="charge-track energy-track"><div id="energy-fill"></div></div><small>擦弹 +10 · 完美 +25</small></div>
+      <div class="dash-panel"><div><span>冲刺系统</span><strong id="dash-label">就绪 / READY</strong></div><div class="charge-track"><div id="dash-fill"></div></div><small>按下触发 · 撞墙停止</small></div>
+      <button id="reset" class="button quiet">↺ 复位</button>
+    </section>
+    <details class="telemetry"><summary>遥测 / TELEMETRY</summary><output id="telemetry"></output></details>
+    <section id="overlay" class="overlay" aria-labelledby="overlay-title">
+      <div class="dialog"><span class="eyebrow" id="overlay-tag">SURVIVE / 180 SECONDS</span><h2 id="overlay-title">进入竞技场</h2><p id="overlay-description">冲刺闪避 · 擦弹积能 · 范围脉冲</p><div id="result-summary" class="result-summary" hidden><div><small>本局得分</small><strong id="result-score">0</strong></div><div><small>本机最高</small><strong id="result-best">0</strong></div><div><small>最高连击</small><strong id="result-combo">0</strong></div><div><small>存活时间</small><strong id="result-time">0s</strong></div></div><button id="resume" class="button primary">开始测试 <span>↗</span></button><small>当前为临时角色 · 可在设置中导入 GLB</small></div>
+    </section>
+    <noscript>请启用 JavaScript 运行 NEON DODGE。</noscript>
+  </main>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

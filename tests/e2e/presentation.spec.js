@@ -1,0 +1,32 @@
+import { test, expect } from '@playwright/test';
+import { makeGlb } from '../fixtures/glb.js';
+
+test('local GLB import, invalid-model fallback, orientation, quality and reduced motion controls', async ({ page }) => {
+  const errors = [], remote = [];
+  page.on('pageerror', e => errors.push(e.message));
+  page.on('request', r => { if (/^https?:/.test(r.url()) && !r.url().startsWith('http://127.0.0.1:4174/')) remote.push(r.url()); });
+  await page.goto('./?diagnostics=1');
+  await expect(page.getByRole('button', { name: /开始测试/ })).toBeEnabled();
+  await page.locator('#settings summary').click();
+  await page.locator('#model-file').setInputFiles({ name: 'test-robot.glb', mimeType: 'model/gltf-binary', buffer: Buffer.from(makeGlb()) });
+  await expect(page.locator('#model-status')).toContainText('五种动作已识别', { timeout: 15000 });
+  await page.locator('#model-rotation').selectOption('180');
+  await page.locator('#quality').selectOption('high');
+  expect(await page.evaluate(() => window.__ND.graphics().quality)).toBe('high');
+  await page.locator('#quality').selectOption('low');
+  await page.locator('#reduced-motion').check();
+  await page.locator('#sound-toggle').click();
+  await expect(page.locator('#sound-toggle')).toHaveAttribute('aria-pressed', 'false');
+  await page.locator('#model-file').setInputFiles({ name: 'broken.glb', mimeType: 'model/gltf-binary', buffer: Buffer.from('broken') });
+  await expect(page.locator('#model-status')).toContainText('当前角色保持不变');
+  await page.locator('#model-reset').click(); await expect(page.locator('#model-status')).toContainText('临时机械体');
+  await page.locator('#settings summary').focus(); await page.keyboard.press('Space');
+  expect(await page.locator('#settings').evaluate(element => element.open)).toBe(false);
+  await page.getByRole('button', { name: /开始测试/ }).click();
+  await page.keyboard.press('Space'); await page.waitForTimeout(100);
+  const state = await page.evaluate(() => window.__ND.snapshot()); expect(state.mode).toBe('running'); expect(state.player.cooldown).toBeGreaterThan(0);
+  const graphics = await page.evaluate(() => window.__ND.graphics());
+  expect(graphics.quality).toBe('low'); expect(graphics.calls).toBeGreaterThan(0); expect(graphics.triangles).toBeLessThan(100000);
+  await page.screenshot({ path: 'test-results/phase4-presentation.png' });
+  expect(errors).toEqual([]); expect(remote).toEqual([]);
+});
